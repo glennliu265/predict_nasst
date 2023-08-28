@@ -1,0 +1,20 @@
+name: predict_nasst
+
+channels:
+    - pytorch-nightly
+    - pytorch
+    - conda-forge
+    - defaults
+
+dependencies:
+    - python=3.10   # Python version 3.10
+    - jupyterlab    # Jupyter Lab environment
+    - numpy         
+    - matplotlib
+    - scipy
+    - cartopy
+    - pandas
+    - pytorch
+    - xarray
+    - cmocean       # Colormaps for Oceanography
+    - tqdm          # Progress bars
