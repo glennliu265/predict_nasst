@@ -20,6 +20,7 @@ Scripts assume the raw data (CESM1 output) is placed in \[../CESM_data\]
 5. Visualize output using Analysis scripts.
 
 ## Contents
+![Draft Workflow Image](https://github.com/glennliu265/predict_nasst/blob/main/Figures/Draft_Workflow.png)
 ### Preprocessing
 Scripts for preparing raw CESM1 data into the predictors and targets.
 
