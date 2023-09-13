@@ -169,10 +169,9 @@ def load_persistence_baseline(dataset_name,datpath=None,return_npfile=False,regi
             region = "NAT"
         fn_base    = "persistence_baseline_CESM1_"
         fn_extend  = "%s_detrend%i_quantile%i_nsamples%s_repeat%i.npz" % (region,detrend,quantile,nsamples,repeat_calc)
-        
-        
+        print(fn_extend)
         ldp       = np.load(datpath+fn_base+fn_extend,allow_pickle=True)
-        print(ldp.files)
+        #print(ldp.files)
         #class_acc = np.array(ldp['arr_0'][None][0]['acc_by_class']) # [Lead x Class]}
         #total_acc = np.array(ldp['arr_0'][None][0]['total_acc'])
         class_acc = np.array(ldp['acc_by_class']) # [Lead x Class]}
@@ -187,10 +186,10 @@ def load_persistence_baseline(dataset_name,datpath=None,return_npfile=False,regi
         savename      = "%spersistence_baseline_%s_%s_detrend%i_quantile%i_nsamples%s_repeat%i.npz" % (datpath,dataset_name,
                                                                                                     region,detrend,
                                                                                                     quantile,nsamples,repeat_calc)
-        ldp = np.load(savename,allow_pickle=True)
+        ldp       = np.load(savename,allow_pickle=True)
         class_acc = ldp['acc_by_class']
         total_acc = ldp['total_acc']
-        persleads    = ldp['leads']
+        persleads = ldp['leads']
     else:
         print("Currently, only CESM1 and HadISST are supported")
     if return_npfile:
