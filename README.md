@@ -10,6 +10,7 @@ The scripts train Fully-connected Neural Networks (NNs) to predict the state of 
 
 ## Directory Structure and Notes
 Scripts assume the raw data (CESM1 output) is placed in \[../CESM_data\]
+Additional dependencies include the Pytorch-LRP package (https://github.com/moboehle/Pytorch-LRP) and functions located in the \[amv\] repository (https://github.com/glennliu265/amv)
 
 ## Set-up
 *note: add script names later*
