@@ -10,12 +10,12 @@ The scripts train Fully-connected Neural Networks (NNs) to predict the state of 
 
 ## Directory Structure and Notes
 Scripts assume the raw data (CESM1 output) is placed in \[../CESM_data\]
-Additional dependencies include the Pytorch-LRP package (https://github.com/moboehle/Pytorch-LRP) and functions located in the \[amv\] repository (https://github.com/glennliu265/amv)
+Additional dependencies include the Pytorch-LRP package (https://github.com/moboehle/Pytorch-LRP) and functions located in the \[amv\] repository (https://github.com/glennliu265/amv). These are assumed to be placed in the directory outside the repository (relative paths: ../amv/ and ../Pytorch-LRP/).
 
 ## Set-up
 *note: add script names later*
 1. Run the yml file to set-up the Python environment with required packages
-2. Place downloaded CESM1 data into target folder and run preprocessing scripts.
+2. Place downloaded CESM1 data into target folder (../CESM_data/) and run preprocessing scripts.
 3. Run NN training scripts
 4. Run Analysis script to compute test metrics
 5. Visualize output using Analysis scripts.
