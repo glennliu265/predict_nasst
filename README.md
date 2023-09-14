@@ -12,6 +12,8 @@ The scripts train Fully-connected Neural Networks (NNs) to predict the state of 
 Scripts assume the raw data (CESM1 output) is placed in \[../CESM_data\]
 Additional dependencies include the Pytorch-LRP package (https://github.com/moboehle/Pytorch-LRP) and functions located in the \[amv\] repository (https://github.com/glennliu265/amv). These are assumed to be placed in the directory outside the repository (relative paths: ../amv/ and ../Pytorch-LRP/).
 
+A subset of the data and results (~1.6 GB) used in Manuscript_Figures.ipynb is available on Google Drive (https://drive.google.com/drive/folders/12VljJ5iYGL08hkE3pQBS-C28kAmu2Fbi?usp=sharing), but will be uploaded to Zenodo after the peer review process (doi will be added here).
+
 ## Set-up
 *note: add script names later*
 1. Run the yml file to set-up the Python environment with required packages
