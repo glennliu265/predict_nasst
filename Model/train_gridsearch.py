@@ -53,8 +53,8 @@ expdir              = "FNN4_128_SingleVar_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Set some looping parameters and toggles
-varnames            = ['SSH',]#"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
-leads               = [25,]#np.arange(0,26,3)    # Prediction Leadtimes
+varnames            = ['SSH','SST',]#"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
+leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,50,1)    # Which runs to do
 
 # Other toggles
