@@ -33,7 +33,7 @@ from torch import nn
 datpath       = "../../CESM_data/"
 
 # Figure output path. User selected.
-figpath       = "/Users/gliu/Downloads/02_Research/01_Projects/04_Predict_AMV/02_Figures/20230720/"
+figpath       = "/Users/gliu/Downloads/02_Research/01_Projects/04_Predict_AMV/02_Figures/20231020/"
 
 # -----------------------------------------------------------------------
 #%% Module and (Raw) Data Paths
