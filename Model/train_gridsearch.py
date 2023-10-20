@@ -10,7 +10,6 @@ Created on Fri Oct 20 10:42:35 2023
 """
 
 import numpy as np
-import skorch
 import itertools
 
 import sys
