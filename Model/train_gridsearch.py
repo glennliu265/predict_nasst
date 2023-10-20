@@ -25,7 +25,7 @@ from torch.utils.data import DataLoader, TensorDataset,Dataset
 # <Start copy from train_NN_CESM1.py>  ========================================
 #%% Load custom packages and setup parameters
 
-machine = 'stormtrack' # Indicate machine (see module packages section in pparams)
+machine = 'Astraeus' # Indicate machine (see module packages section in pparams)
 
 # Import packages specific to predict_amv
 cwd     = os.getcwd()
@@ -188,7 +188,7 @@ for nc in range(ncombos): # Loop for each combination -------------------------
     proc.makedir(outdir + "Models/")
     
     # Reassign Parameters
-    pparams.nn_params_dict = {eparams['netname']:combo_paramdict}
+    pparams.nn_param_dict = {eparams['netname']:combo_paramdict}
     eparams = combo_expdict.copy()
     
     # Now run the Loop 
