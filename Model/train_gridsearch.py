@@ -25,7 +25,7 @@ from torch.utils.data import DataLoader, TensorDataset,Dataset
 # <Start copy from train_NN_CESM1.py>  ========================================
 #%% Load custom packages and setup parameters
 
-machine = 'Astraeus' # Indicate machine (see module packages section in pparams)
+machine = 'stormtrack' # Indicate machine (see module packages section in pparams)
 
 # Import packages specific to predict_amv
 cwd     = os.getcwd()
