@@ -1763,6 +1763,10 @@ def build_FNN_simple(inputsize,outsize,nlayers,nunits,activations,dropout=0.5,
         from pytorch import nn
         
     """
+    # Check nunits and duplicate if it is not the same
+    if type(nunits) == int:
+        nunits = [nunits,] * nlayers
+    
     layers = []
     for n in range(nlayers+1):
         #print(n)
