@@ -11,7 +11,7 @@ Module containing functions for predict_amv. Contents are below:
     load_model_weights              : Use string glob to get model weights/file structure produced by [train_NN_CESM1.py]
     load_cmip6_data                 : Load predictor and target values processed with [prep_data_lens.py]
     
-<><><> Indexing and Sampling <><><><><><><><><><><><><><><><><><><><><><><>
+<><><> Indexing and Sampling <><><><><><><><><><><><><><><><><><><N_simple><><><><>
     
         ~~~ Sampling and Classification
     make_classes                    : Create classes for an index based on given thresholds
@@ -1766,6 +1766,11 @@ def build_FNN_simple(inputsize,outsize,nlayers,nunits,activations,dropout=0.5,
     # Check nunits and duplicate if it is not the same
     if type(nunits) == int:
         nunits = [nunits,] * nlayers
+        
+    # Verify each later to check that the size matches
+    while len(activations) < nlayers:
+        print("Warning: Not all activations were specified. Duplicating the last layer")
+        activations.append(activations[-1]) # Just Append the Last Activation
     
     layers = []
     for n in range(nlayers+1):
