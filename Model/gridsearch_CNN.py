@@ -96,10 +96,45 @@ if debug:
     target_class     :: [ens x year]
 """
 
+# ----------------------------------------------------
+# %% Retrieve a consistent sample if the option is set
+# ----------------------------------------------------
 
-#%% Make a Class
+if eparams["shuffle_trainsplit"] is False:
+    print("Pre-selecting indices for consistency")
+    output_sample=am.consistent_sample(data,target_class,leads,eparams['nsamples'],leadmax=leads.max(),
+                          nens=None,ntime=None,
+                          shuffle_class=eparams['shuffle_class'],debug=False)
+    
+    target_indices,target_refids,predictor_indices,predictor_refids = output_sample
+else:
+    print("Indices will be shuffled for each training iteration")
+    target_indices     = None
+    predictor_indices  = None
+    target_refids      = None
+    predictor_refids   = None
 
-def build_simplecnn(param_dict,num_classes,nlat=224,nlon=224,num_inchannels=3):
+"""
+Output
+
+shuffidx_target  = [nsamples*nclasses,]        - Indices of target
+predictor_refids = [nlead][nsamples*nclasses,] - Indices of predictor at each leadtime
+
+tref --> array of the target years
+predictor_refids --> array of the predictor refids
+"""
+
+# <End copy from train_NN_CESM1.py>  ==========================================
+
+#%% Load base experiment dictionary -------------------------------------------
+
+nnparams_original = pparams.nn_param_dict[eparams['netname']].copy()
+eparams_original  = eparams.copy()
+
+#%% <Add Some Functions>
+
+# This has been moved to amvmod
+def build_simplecnn_fromdict(param_dict,num_classes,nlat=224,nlon=224,num_inchannels=3):
     
     # 2 layer CNN settings
     nchannels      = param_dict['nchannels']#
@@ -138,53 +173,22 @@ def build_simplecnn(param_dict,num_classes,nlat=224,nlon=224,num_inchannels=3):
             layers.append(linear_layer)
     return layers
 
-#%%
 
-nlat = 69
-nlon = 65
-
-# 2-Layer CNN (original)
-cnn_param_dict_ori = {
-    "nchannels"     : [32,64],
-    "filtersizes"   : [[2,3],[3,3]],
-    "filterstrides" : [[1,1],[1,1]],
-    "poolsizes"     : [[2,3],[2,3]],
-    "poolstrides"   : [[2,3],[2,3]],
-    }
-
-# 2-Layer CNN (corrected, basedon diagram)
-cnn_param_dict = {
-    "nchannels"     : [32,64],
-    "filtersizes"   : [[2,3],[2,3]],
-    "filterstrides" : [[1,1],[1,1]],
-    "poolsizes"     : [[3,3],[3,3]],
-    "poolstrides"   : [[2,3],[2,3]],
-    }
-
-# Set the Test Values
-nchannels     = ([32,],[32,64],[32,64,128]) 
-filtersizes   = ([2,2],[3,3],[4,4])
-filterstrides = (2,3,4)
-poolsizes     = copy.deepcopy(filtersizes)
-poolstrides   = copy.deepcopy(filterstrides)
-
-# Set up testing dictionary
-test_param_names  = ["nchannels","filtersizes","filterstrides","poolsizes","poolstrides"]
-test_param_values = [nchannels  ,filtersizes  ,filterstrides  ,poolsizes  ,poolstrides]
-test_params       = dict(zip(test_param_names,test_param_values))
-param_combinations = list(itertools.product(*test_param_values))
-ncombos            = len(param_combinations)
-
-#%%  A Simpler Test
-
+#%%  A Simple Test
 """
 Let's set up a simpler test, where:
     (1) strides + filter sizes are symmetric, and 
     (2) the pool and filter sizes are also the same...
+    
+Option for future work:
+    Develop more extensive hyperparameter tests
+    where the filter vs pool sizes are different, or where the strides
+    are symmetric...
 """
 
-in_channels = 1
-num_classes = 3
+# Set some dimensions
+in_channels = 1 # Input Channels, Let's use single predictors first
+num_classes = 3 # Number of output classes (+) or (-) NASST
 
 # Set the Test Values
 nchannels     = ([32,],[32,64],[32,64,128]) 
@@ -193,17 +197,20 @@ filterstrides = (2,3,4)
 poolsizes     = copy.deepcopy(filtersizes)
 poolstrides   = copy.deepcopy(filterstrides)
 
-# Set up testing dictionary (reduced complexity)
+# Set up testing dictionary (simple test)
 test_param_names   = ["nchannels","filtersizes","filterstrides",]
 test_param_values  = [nchannels  ,filtersizes  ,filterstrides  ,]
 test_params        = dict(zip(test_param_names,test_param_values))
 param_combinations = list(itertools.product(*test_param_values))
 ncombos            = len(param_combinations)
 
-# Set up dictionaries and build CNNs
-all_cnns = []
+# Set up dictionaries and build CNNs ---------
+all_cnns    = []
+expnames    = []
+param_dicts = []
 for n in range(ncombos):
     
+    # Create Parameter Dictionary
     nchannels,filtersize,stridesize=param_combinations[n]
     stridesize_in = [stridesize,stridesize]
     nlayers = len(nchannels)
@@ -216,14 +223,198 @@ for n in range(ncombos):
         "activations"   : [nn.ReLU(),]*nlayers,
         "dropout"       : 0,
         }
-    
-    cnnmod = build_simplecnn(cnn_param_dict,num_classes,
+    # Build CNN
+    cnnmod = build_simplecnn_fromdict(cnn_param_dict,num_classes,
                         nlat=nlat,nlon=nlon,num_inchannels=in_channels)
     
-    all_cnns.append(cnnmod)
+    # Set Name
+    expname = "nlayers%i_filtersize%i_stride%i" % (nlayers,filtersize[0],stridesize)
     
+    # Append Everything
+    all_cnns.append(cnnmod)
+    expnames.append(expname)
+    param_dicts.append(cnn_param_dict)
+
+#%% Now place this into a training loop
+
+# Set some variables needed
+varname    = varnames[0]
+predictors = data[[0],...] # Get selected predictor
 
 
-#%%
-
+for nc in range(ncombos):
+    
+    # Get Information
+    pcomb           = param_combinations[nc]
+    pdict           = param_dicts[nc]
+    pname           = expnames[nc]
+    ct              = time.time()
+    
+    # Copy dictionaries to use for this particular combo
+    combo_expdict   = eparams_original.copy()
+    combo_paramdict = nnparams_original.copy()
+    
+    # Make the experiment string and prepare the folder
+    expstr = pname
+    print(expstr)
+    outdir = "%s%s/ParamTesting/%s/" % (pparams.datpath,expdir,expstr)
+    proc.makedir(outdir)
+    proc.makedir(outdir + "Metrics/")
+    proc.makedir(outdir + "Models/")
+    
+    # Reassign Parameters
+    combo_expdict['netname'] = "simplecnn_paramdict" # Assign key to make custom simplecnn
+    combo_paramdict.update(pdict) # Merge Original and new Dictionary
+    pparams.nn_param_dict    = {combo_expdict['netname']:combo_paramdict}
+    eparams                  = combo_expdict.copy()
+    
+    # Now run the Loop 
+    # <START copy from train_NN_CESM1.py>  ====================================
+    # --------------------
+    # 05. Loop by runid...
+    # --------------------
+    for nr,runid in enumerate(runids):
+        rt = time.time()
+        
+        # ---------------------------------------
+        # 06. Set experiment name and preallocate
+        # ---------------------------------------
+        # Set experiment save name (ex: Ann2deg_NAT_CNN2_nepoch5_nens_40_lead24 )
+        expname = ("AMVClass%i_%s_nepoch%02i_" \
+                   "nens%02i_maxlead%02i_"\
+                   "detrend%i_run%02i_"\
+                   "quant%i_res%s" % (nclasses,eparams['netname'],eparams['max_epochs'],
+                                         eparams['ens'],leads[-1],eparams['detrend'],runid,
+                                         eparams['quantile'],eparams['regrid']))
+        
+        # Preallocate Evaluation Metrics...
+        train_loss_grid = [] #np.zeros((max_epochs,nlead))
+        test_loss_grid  = [] #np.zeros((max_epochs,nlead))
+        val_loss_grid   = [] 
+        
+        train_acc_grid  = []
+        test_acc_grid   = [] # This is total_acc
+        val_acc_grid    = []
+        
+        acc_by_class    = []
+        total_acc       = []
+        yvalpred        = []
+        yvallabels      = []
+        sampled_idx     = []
+        thresholds_all  = []
+        sample_sizes    = []
+        
+        # -----------------------
+        # 07. Loop by Leadtime...
+        # -----------------------
+        for l,lead in enumerate(leads):
+            
+            # Set names for intermediate saving, based on leadtime
+            if (lead == leads[-1]) and (len(leads)>1): # Output all files together
+                outname = "/leadtime_testing_%s_%s_ALL.npz" % (varname,expname)
+            else: # Output individual lead times while training
+                outname = "/leadtime_testing_%s_%s_lead%02dof%02d.npz" % (varname,expname,lead,leads[-1])
+            
+            if target_indices is None:
+                # --------------------------
+                # 08. Apply lead/lag to data
+                # --------------------------
+                # X -> [samples x channel x lat x lon] ; y_class -> [samples x 1]
+                X,y_class = am.apply_lead(predictors,target_class,lead,reshape=True,ens=eparams['ens'],tstep=ntime)
+                
+                # ----------------------
+                # 09. Select samples
+                # ----------------------
+                if (eparams['shuffle_trainsplit'] is True) or (l == 0):
+                    if eparams['nsamples'] is None: # Default: nsamples = smallest class
+                        threscount = np.zeros(nclasses)
+                        for t in range(nclasses):
+                            threscount[t] = len(np.where(y_class==t)[0])
+                        eparams['nsamples'] = int(np.min(threscount))
+                        print("Using %i samples, the size of the smallest class" % (eparams['nsamples']))
+                    y_class,X,shuffidx = am.select_samples(eparams['nsamples'],y_class,X,verbose=debug,shuffle=eparams['shuffle_class'])
+                
+                else:
+                    
+                    print("Select the pre-sampled indices")
+                    shuffidx = sampled_idx[l-1]
+                    y_class  = y_class[shuffidx,...]
+                    X        = X[shuffidx,...]
+                    am.count_samples(eparams['nsamples'],y_class)
+                shuffidx = shuffidx.astype(int)
+            else:
+                print("Using preselected indices")
+                pred_indices = predictor_indices[l]
+                nchan        = predictors.shape[0]
+                y_class      = target_class.reshape((ntime*nens,1))[target_indices,:]
+                X            = predictors.reshape((nchan,nens*ntime,nlat,nlon))[:,pred_indices,:,:]
+                X            = X.transpose(1,0,2,3) # [sample x channel x lat x lon]
+                shuffidx     = target_indices    
+            
+            # # --------------------------------------------------------------------------------
+            # # Steps 10-12 (Split Data, Train/Test/Validate Model, Calculate Accuracy by Class)
+            # # --------------------------------------------------------------------------------
+            output = am.train_NN_lead(X,y_class,eparams,pparams,debug=debug,checkgpu=checkgpu)
+            model,trainloss,valloss,testloss,trainacc,valacc,testacc,y_predicted,y_actual,class_acc,lead_acc = output
+            
+            # Append outputs for the leadtime
+            train_loss_grid.append(trainloss)
+            val_loss_grid.append(valloss)
+            test_loss_grid.append(testloss)
+            
+            train_acc_grid.append(trainacc)
+            val_acc_grid.append(valacc)
+            test_acc_grid.append(testacc)
+            
+            acc_by_class.append(class_acc)
+            total_acc.append(lead_acc)
+            yvalpred.append(y_predicted)
+            yvallabels.append(y_actual)
+            sampled_idx.append(shuffidx) # Save the sample indices
+            sample_sizes.append(eparams['nsamples'])
+            
+            # ------------------------------
+            # 13. Save the model and metrics
+            # ------------------------------
+            if savemodel:
+                modout = "%s/Models/%s_lead%02i_classify.pt" %(outdir,varname,lead)
+                torch.save(model.state_dict(),modout)
+            
+            # Save Metrics
+            savename = outdir+"/"+"Metrics"+outname
+            np.savez(savename,**{
+                      'train_loss'     : train_loss_grid,
+                      'test_loss'      : test_loss_grid,
+                      'val_loss'       : val_loss_grid,
+                      'train_acc'      : train_acc_grid,
+                      'test_acc'       : test_acc_grid,
+                      'val_acc'        : val_acc_grid,
+                      'total_acc'      : total_acc,
+                      'acc_by_class'   : acc_by_class,
+                      'yvalpred'       : yvalpred,
+                      'yvallabels'     : yvallabels,
+                      'sampled_idx'    : sampled_idx,
+                      'thresholds_all' : thresholds_all,
+                      'exp_params'     : eparams,
+                      'sample_sizes'   : sample_sizes,
+                      }
+                      )
+            
+            # Clear some memory
+            del model
+            torch.cuda.empty_cache()  # Save some memory
+            
+            #print("\nCompleted training for %s lead %i of %i" % (varname,lead,leads[-1]))
+            # End Lead Loop >>>
+        #print("\nRun %i finished in %.2fs" % (runid,time.time()-rt))
+        # End Runid Loop >>>
+    print("Completed combination %s in %.2fs" % (expstr,time.time()-ct))
+    # <End Parameter Combination Loop>
+    
+    
+    
+    
+    
+    
+    
 
