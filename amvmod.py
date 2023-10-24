@@ -49,6 +49,7 @@ Module containing functions for predict_amv. Contents are below:
     recreate_model                  : Recreate NN model for loading weights based on <modelname>, <nn_param_dict> from [predict_amv_params.py], <inputsize> and <outsize>
     transfer_model                  : Load pretrained weights and architectures for simplecnn, cnn2_lrp, and timm (no longer supported)
     build_simplecnn                 : Construct a simple CNN based on inputs
+    build_simplecnn_fromdict       : Construct a simple CNN with custom parameters from a dictionary for hyperparameter testing
     build_FNN_simple                : Build a feed-forward network
     calc_layerdims                  : Compute size of first fully-connected layer after N convolutional layers
     
@@ -1220,7 +1221,7 @@ def train_NN_lead(X,y,eparams,pparams,debug=False,checkgpu=True):
     else:
         # Note: Currently not supported due to issues with timm model. Need to rewrite later...
         pmodel = transfer_model(eparams['netname'],nclasses,cnndropout=nn_params['cnndropout'],unfreeze_all=eparams['unfreeze_all'],
-                                nlat=nlat,nlon=nlon,nchannels=nchannels)
+                                nlat=nlat,nlon=nlon,nchannels=nchannels,param_dict=nn_params)
         
     # Train/Validate Model
     model,trainloss,testloss,valloss,trainacc,testacc,valacc = train_ResNet(pmodel,eparams['loss_fn'],eparams['opt'],
@@ -1576,7 +1577,7 @@ def recreate_model(modelname,nn_param_dict,inputsize,outsize,nlat=180,nlon=360):
     return pmodel
 
 def transfer_model(modelname,num_classes,cnndropout=False,unfreeze_all=False
-                    ,nlat=224,nlon=224,nchannels=3):
+                    ,nlat=224,nlon=224,nchannels=3,param_dict=None):
     """
     Load pretrained weights and architectures based on [modelname]
     
@@ -1591,12 +1592,15 @@ def transfer_model(modelname,num_classes,cnndropout=False,unfreeze_all=False
     unfreeze_all : BOOL, optional
         Set to True to unfreeze all weights in the model. Otherwise, just
         the last layer is unfrozen. The default is False.
+    param_dict : DICT, optional
+        For simplecnn_paramdict, see build_simplecnn_fromdict
     
     Returns
     -------
     model : PyTorch Model
         Returns loaded Pytorch model
     """
+    
     channels=nchannels
     if 'resnet' in modelname: # Load ResNet
         print("ResNet currently not supported... need to solve compatibility issues with timm. WIP.")
@@ -1606,7 +1610,9 @@ def transfer_model(modelname,num_classes,cnndropout=False,unfreeze_all=False
         #     for param in model.parameters():
         #         param.requires_grad = False
         # model.fc = nn.Linear(model.fc.in_features, num_classes) # Set last layer size
-        
+    elif modelname == "simplecnn_paramdict":
+        model = build_simplecnn_fromdict(param_dict,num_classes,nlat=nlat,nlon=nlon,num_inchannels=nchannels)
+        model = nn.Sequential(*model)
     elif modelname == 'simplecnn': # Use Simple CNN from previous testing framework
         # 2 layer CNN settings
         nchannels     = [32,64]
@@ -1651,7 +1657,6 @@ def transfer_model(modelname,num_classes,cnndropout=False,unfreeze_all=False
                     #nn.ReLU(),
                     #nn.Sigmoid(),
                     nn.MaxPool2d(kernel_size=poolsizes[1]),
-    
                     nn.Flatten(),
                     nn.Linear(in_features=firstlineardim,out_features=64),
                     nn.Tanh(),
@@ -1737,6 +1742,46 @@ def build_simplecnn(num_classes,cnndropout=False,unfreeze_all=False
                 ]
     model = nn.Sequential(*layers) # Set up model
     return model
+
+def build_simplecnn_fromdict(param_dict,num_classes,nlat=224,nlon=224,num_inchannels=3):
+    # Same as above, but using a parameter dictionary. See "gridsearch_CNN.py"
+    
+    # 2 layer CNN settings
+    nchannels      = param_dict['nchannels']#
+    filtersizes    = param_dict['filtersizes']
+    filterstrides  = param_dict['filterstrides']
+    poolsizes      = param_dict['poolsizes']#[[2,3],[2,3]]
+    poolstrides    = param_dict['poolstrides']#[[2,3],[2,3]]
+    activations    = param_dict['activations']
+    dropout        = param_dict['dropout']
+    firstlineardim = calc_layerdims(nlat,nlon,filtersizes,filterstrides,poolsizes,poolstrides,nchannels)
+    
+    layers = []
+    nlayers = len(nchannels)
+    
+    for l in range(nlayers):
+        if l == 0: # 1st Layer
+            # Make + Append Convolutional Layer
+            conv_layer = nn.Conv2d(in_channels=num_inchannels,out_channels=nchannels[l], kernel_size=filtersizes[l], stride=filterstrides[l])
+            layers.append(conv_layer)
+        else: # All other layers
+            # Make + Append Convolutional Layer
+            nn.Conv2d(in_channels=nchannels[l-1], out_channels=nchannels[l], kernel_size=filtersizes[l], stride=filterstrides[l])
+            layers.append(conv_layer)
+        
+        # Append Activation
+        layers.append(activations[l])
+        
+        # Make+Append Pooling layer
+        pool_layer = nn.MaxPool2d(kernel_size=poolsizes[l], stride=poolstrides[l])
+        layers.append(pool_layer)
+        
+        if l == (nlayers-1): # Final Layer (Flatten and add Fully Connected)
+            layers.append(nn.Flatten())
+            layers.append(nn.Dropout(p=dropout))
+            linear_layer = nn.Linear(in_features=firstlineardim,out_features=num_classes)
+            layers.append(linear_layer)
+    return layers
 
 def build_FNN_simple(inputsize,outsize,nlayers,nunits,activations,dropout=0.5,
                      use_softmax=False):
