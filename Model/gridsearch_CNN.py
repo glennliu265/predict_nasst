@@ -191,7 +191,7 @@ in_channels = 1 # Input Channels, Let's use single predictors first
 num_classes = 3 # Number of output classes (+) or (-) NASST
 
 # Set the Test Values
-nchannels     = ([32,],[32,64],[32,64,128]) 
+nchannels     = ([32,64],[32,64,128]) 
 filtersizes   = ([2,2],[3,3],[4,4])
 filterstrides = (2,3,4)
 poolsizes     = copy.deepcopy(filtersizes)
