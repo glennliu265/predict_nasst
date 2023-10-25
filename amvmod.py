@@ -1766,7 +1766,7 @@ def build_simplecnn_fromdict(param_dict,num_classes,nlat=224,nlon=224,num_inchan
             layers.append(conv_layer)
         else: # All other layers
             # Make + Append Convolutional Layer
-            nn.Conv2d(in_channels=nchannels[l-1], out_channels=nchannels[l], kernel_size=filtersizes[l], stride=filterstrides[l])
+            conv_layer = nn.Conv2d(in_channels=nchannels[l-1], out_channels=nchannels[l], kernel_size=filtersizes[l], stride=filterstrides[l])
             layers.append(conv_layer)
         
         # Append Activation
