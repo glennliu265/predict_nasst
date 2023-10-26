@@ -208,6 +208,7 @@ ncombos            = len(param_combinations)
 all_cnns    = []
 expnames    = []
 param_dicts = []
+fcsize_fin = []
 for n in range(ncombos):
     
     # Create Parameter Dictionary
@@ -227,9 +228,23 @@ for n in range(ncombos):
     cnnmod = build_simplecnn_fromdict(cnn_param_dict,num_classes,
                         nlat=nlat,nlon=nlon,num_inchannels=in_channels)
     
+    # Check Final Layer Size
+    fcfinal = am.calc_layerdims(nlon,nlat,
+                                cnn_param_dict['filtersizes'],
+                                cnn_param_dict['filterstrides'],
+                                cnn_param_dict['poolsizes'],
+                                cnn_param_dict['poolstrides'],
+                                cnn_param_dict['nchannels'],
+                                )
+    fcsize_fin.append(fcfinal)
+
+        
+    
     # Set Name
     expname = "nlayers%i_filtersize%i_stride%i" % (nlayers,filtersize[0],stridesize)
-    
+    if fcfinal == 0:
+        print("Combo is not valid: %s" % (expname))
+        
     # Append Everything
     all_cnns.append(cnnmod)
     expnames.append(expname)
@@ -248,6 +263,10 @@ for nc in range(ncombos):
     pcomb           = param_combinations[nc]
     pdict           = param_dicts[nc]
     pname           = expnames[nc]
+    fcsize          = fcsize_fin[nc]
+    if fcsize == 0:
+        print("%s is not valid, skipping." % (pname))
+        continue
     ct              = time.time()
     
     # Copy dictionaries to use for this particular combo
