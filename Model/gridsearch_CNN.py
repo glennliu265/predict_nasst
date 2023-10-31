@@ -57,7 +57,7 @@ expdir              = "CNN2_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Set some looping parameters and toggles
-varnames            = ['SSH','SST',]#"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
+varnames            = ['SST',] # Names of predictor variables (Currently only supports 1!!)
 leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,50,1)    # Which runs to do
 
