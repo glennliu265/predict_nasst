@@ -1314,11 +1314,17 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
     i_incr    = 0 # Number of epochs for which the validation loss increases
     bestloss  = np.infty
     
-    # Main Loop
-    train_acc,test_acc,val_acc = [],[],[] # Preallocate tuples to store accuracy
-    train_loss,test_loss,val_loss = [],[],[]   # Preallocate tuples to store loss
-    bestloss = np.infty
+    # Preallocation (in the future can allocate this to [3 x max_epoch] array)
+    losses = {'train': np.zeros((max_epochs)), 'test' : np.zeros((max_epochs)),'val' : np.zeros((max_epochs))}
+    accs   = {'train': np.zeros((max_epochs)), 'test' : np.zeros((max_epochs)),'val' : np.zeros((max_epochs))}
+    # test_loss  = train_loss.copy()
+    # val_loss   = train_loss.copy()
+    # train_acc  = train_loss.copy()
+    # test_acc   = train_loss.copy()
+    # val_acc    = train_loss.copy()
     
+    # Main Loop
+    bestloss = np.infty
     for epoch in tqdm(range(max_epochs)): # loop by epoch
         for mode,data_loader in mode_loop: # train/test for each epoch
             if mode == 'train':  # Training, update weights
@@ -1359,52 +1365,61 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
                 
                 runningloss += float(loss.item())
             
+            # Compute the Mean Loss Across Mini-batches
+            meanloss_batch = runningloss/len(mode_loop)
+            meanacc_batch  = correct/total
+            
             if verbose: # Print progress message
                 print('{} Set: Epoch {:02d}. loss: {:3f}. acc: {:.3f}%'.format(mode, epoch+1, \
-                                                runningloss/len(data_loader),correct/total*100))
+                                                meanloss_batch,meanacc_batch*100))
             
             # Save model if this is the best loss
-            if (runningloss/len(data_loader) < bestloss) and ((mode == 'val') or (val_flag is False and mode == "test")):
-                bestloss = runningloss/len(data_loader)
+            if (meanloss_batch < bestloss) and ((mode == 'val') or (val_flag is False and mode == "test")):
+                bestloss  = meanloss_batch
                 bestmodel = copy.deepcopy(model)
                 if verbose:
                     print("Best Loss of %f at epoch %i"% (bestloss,epoch+1))
             
             # Save running loss values for the epoch
-            if mode == 'train':
-                train_loss.append(runningloss/len(data_loader))
-                train_acc.append(correct/total)
-            elif mode == 'test':
-                test_loss.append(runningloss/len(data_loader))
-                test_acc.append(correct/total)
-            elif mode == 'val':
-                val_loss.append(runningloss/len(data_loader))
-                val_acc.append(correct/total)
-                
-                # Evaluate if early stopping is needed
+            losses[mode][epoch] = meanloss_batch
+            accs[mode][epoch]   = meanacc_batch
+            
+            # Evaluate if early stopping is needed
+            if mode == 'val' or (len(dataloaders) < 3 and mode =='test'):
                 if epoch == 0: # Save previous loss
-                    lossprev = runningloss/len(data_loader)
+                    lossprev = meanloss_batch
                 else: # Add to counter if validation loss increases
-                    if runningloss/len(data_loader) > lossprev:
+                    if meanloss_batch > lossprev:
                         i_incr += 1 # Add to counter
                         if verbose:
                             print("Validation loss has increased at epoch %i, count=%i"%(epoch+1,i_incr))
                     else:
                         i_incr = 0 # Zero out counter
-                    lossprev = runningloss/len(data_loader)
-
-                if (epoch != 0) and (i_incr >= i_thres):
+                    lossprev = meanloss_batch
+                if (epoch != 0) and (i_incr >= i_thres): # Apply Early stopping and exit script
                     print("\tEarly stop at epoch %i "% (epoch+1))
+                    # Decompress dicts (At some point, edit this so that you just return the dictionary...)
+                    loss_arr = [losses[md] for md in mode_names]
+                    train_loss,test_loss,val_loss = loss_arr
+                    acc_arr = [accs[md] for md in mode_names]
+                    train_acc,test_acc,val_acc = acc_arr
                     return bestmodel,train_loss,test_loss,val_loss,train_acc,test_acc,val_acc
-
             # Clear some memory
             #print("Before clearing in epoch %i mode %s, memory is %i"%(epoch,mode,torch.cuda.memory_allocated(device)))
             del batch_x
             del batch_y
             torch.cuda.empty_cache()
+            
             #print("After clearing in epoch %i mode %s, memory is %i"%(epoch,mode,torch.cuda.memory_allocated(device)))
-
+            # <End Train/Test/Val Mode Loop>
+        # <End Epoch Loop>
+    
     #bestmodel.load_state_dict(best_model_wts)
+    # Decompress dicts (At some point, edit this so that you just return the dictionary...)
+    loss_arr = [losses[md] for md in mode_names]
+    train_loss,test_loss,val_loss = loss_arr
+    acc_arr = [accs[md] for md in mode_names]
+    train_acc,test_acc,val_acc = acc_arr
     return bestmodel,train_loss,test_loss,val_loss,train_acc,test_acc,val_acc
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1861,6 +1876,8 @@ def calc_layerdims(nx,ny,filtersizes,filterstrides,poolsizes,poolstrides,nchanne
     ysizes = [ny]
     fcsizes  = []
     for i in range(N):
+        
+        
         # Apply initial convolution
         xsizes.append(np.floor((xsizes[i]-filtersizes[i][0])/filterstrides[i][0])+1)
         ysizes.append(np.floor((ysizes[i]-filtersizes[i][1])/filterstrides[i][1])+1)
