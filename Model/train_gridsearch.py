@@ -53,7 +53,7 @@ expdir              = "FNN4_128_SingleVar_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Set some looping parameters and toggles
-varnames            = ['SSH','SST',]#"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
+varnames            = ['SSH',]# Only Supportss 1!! ["SST","SSS","SLP","NHFLX",]       # Names of predictor variables
 leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,50,1)    # Which runs to do
 
@@ -136,13 +136,13 @@ varname    = varnames[0]
 predictors = data[[0],...] # Get selected predictor
 
 # For FNN4, just test the number of layers and units
-nlayers  = [6,]      # Number of Layers
+nlayers  = [8,]      # Number of Layers
 nunits   = [64,128,256] # Number of Units
-dropouts = [True,False] # Useing Dropout Layer 
+#dropouts = [0.5,0] # Useing Dropout Layer 
 
 # Set up testing dictionary
-test_param_names  = ["nlayers","nunits","dropout"]
-test_param_values = [nlayers,nunits,dropouts]
+test_param_names  = ["nlayers","nunits",]
+test_param_values = [nlayers,nunits]
 test_params       = dict(zip(test_param_names,test_param_values))
 
 # Get some measurements
@@ -173,7 +173,7 @@ for nc in range(ncombos): # Loop for each combination -------------------------
         # Copy parameters into dictionary ----------------------------
         if name in combo_expdict.keys(): # Check experiment dictionary
             print("Found <%s> in eparams_original;\t replacing with value: %s" % (name,pcomb[p]))
-            combo_expdict[name] = pcomb[p]
+            combo_expdict[name]   = pcomb[p]
         elif name in combo_paramdict.keys(): # Check parameter dictionary
             print("Found <%s> in nnparams_original;\t replacing with value: %s" % (name,pcomb[p]))
             combo_paramdict[name] = pcomb[p]
