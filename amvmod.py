@@ -1264,9 +1264,9 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
         verbose     - set to True to display training messages
         reduceLR    - BOOL, set to true to use LR scheduler
         LRpatience  - INT, patience for LR scheduler
-
+    
     output:
-
+    
     dependencies:
         from torch import nn,optim
 
@@ -1315,13 +1315,8 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
     bestloss  = np.infty
     
     # Preallocation (in the future can allocate this to [3 x max_epoch] array)
-    losses = {'train': np.zeros((max_epochs)), 'test' : np.zeros((max_epochs)),'val' : np.zeros((max_epochs))}
-    accs   = {'train': np.zeros((max_epochs)), 'test' : np.zeros((max_epochs)),'val' : np.zeros((max_epochs))}
-    # test_loss  = train_loss.copy()
-    # val_loss   = train_loss.copy()
-    # train_acc  = train_loss.copy()
-    # test_acc   = train_loss.copy()
-    # val_acc    = train_loss.copy()
+    losses = {'train': np.full((max_epochs),np.nan), 'test' : np.full((max_epochs),np.nan),'val' : np.full((max_epochs),np.nan)}
+    accs   = {'train': np.full((max_epochs),np.nan), 'test' : np.full((max_epochs),np.nan),'val' : np.full((max_epochs),np.nan)}
     
     # Main Loop
     bestloss = np.infty
@@ -1366,7 +1361,7 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
                 runningloss += float(loss.item())
             
             # Compute the Mean Loss Across Mini-batches
-            meanloss_batch = runningloss/len(mode_loop)
+            meanloss_batch = runningloss/len(data_loader)
             meanacc_batch  = correct/total
             
             if verbose: # Print progress message
@@ -1385,7 +1380,7 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
             accs[mode][epoch]   = meanacc_batch
             
             # Evaluate if early stopping is needed
-            if mode == 'val' or (len(dataloaders) < 3 and mode =='test'):
+            if mode == 'val' or (val_flag is False and mode == "test"):
                 if epoch == 0: # Save previous loss
                     lossprev = meanloss_batch
                 else: # Add to counter if validation loss increases
@@ -1418,7 +1413,7 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
     # Decompress dicts (At some point, edit this so that you just return the dictionary...)
     loss_arr = [losses[md] for md in mode_names]
     train_loss,test_loss,val_loss = loss_arr
-    acc_arr = [accs[md] for md in mode_names]
+    acc_arr  = [accs[md] for md in mode_names]
     train_acc,test_acc,val_acc = acc_arr
     return bestmodel,train_loss,test_loss,val_loss,train_acc,test_acc,val_acc
 
