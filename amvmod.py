@@ -1152,7 +1152,7 @@ def prep_traintest_classification(data,target,lead,thresholds,percent_train,
 # ~~~ NN Training
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def train_NN_lead(X,y,eparams,pparams,debug=False,checkgpu=True):
+def train_NN_lead(X,y,eparams,pparams,debug=False,checkgpu=True,verbose=True):
     """
     Wrapper for training neural network.
     
@@ -1197,7 +1197,6 @@ def train_NN_lead(X,y,eparams,pparams,debug=False,checkgpu=True):
     X_subsets = [torch.from_numpy(X.astype(np.float32)) for X in X_subsets]
     y_subsets = [torch.from_numpy(y.astype(np.compat.long)) for y in y_subsets]
     
-    
     # # Put into pytorch dataloaders
     data_loaders = [DataLoader(TensorDataset(X_subsets[iset],y_subsets[iset]), batch_size=eparams['batch_size']) for iset in range(len(X_subsets))]
     if len(data_loaders) == 2:
@@ -1227,8 +1226,8 @@ def train_NN_lead(X,y,eparams,pparams,debug=False,checkgpu=True):
     model,trainloss,testloss,valloss,trainacc,testacc,valacc = train_ResNet(pmodel,eparams['loss_fn'],eparams['opt'],
                                                                                data_loaders,
                                                                                eparams['max_epochs'],early_stop=eparams['early_stop'],
-                                                                               verbose=debug,reduceLR=eparams['reduceLR'],
-                                                                               LRpatience=eparams['LRpatience'],checkgpu=checkgpu)
+                                                                               verbose=verbose,reduceLR=eparams['reduceLR'],
+                                                                               LRpatience=eparams['LRpatience'],checkgpu=checkgpu,debug=debug)
     
     # ------------------------------------------------------
     # 12. Test the model separately to get accuracy by class
@@ -1247,7 +1246,7 @@ def train_NN_lead(X,y,eparams,pparams,debug=False,checkgpu=True):
 
 def train_ResNet(model,loss_fn,optimizer,dataloaders,
                  max_epochs,early_stop=False,verbose=True,
-                 reduceLR=False,LRpatience=3,checkgpu=True):
+                 reduceLR=False,LRpatience=3,checkgpu=True,debug=True):
     """
     inputs:
         model       - Resnet model
@@ -1319,7 +1318,6 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
     accs   = {'train': np.full((max_epochs),np.nan), 'test' : np.full((max_epochs),np.nan),'val' : np.full((max_epochs),np.nan)}
     
     # Main Loop
-    bestloss = np.infty
     for epoch in tqdm(range(max_epochs)): # loop by epoch
         for mode,data_loader in mode_loop: # train/test for each epoch
             if mode == 'train':  # Training, update weights
@@ -1328,6 +1326,7 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
                 model.eval()
             
             runningloss = 0
+            runningmean = 0
             correct     = 0
             total       = 0
             for i,data in enumerate(data_loader):
@@ -1340,12 +1339,12 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
                 
                 # Forward pass
                 pred_y = model(batch_x)
+                _,predicted = torch.max(pred_y.data,1)
                 
                 # Calculate loss
                 loss = loss_fn(pred_y,batch_y[:,0])
                 
                 # Track accuracy
-                _,predicted = torch.max(pred_y.data,1)
                 total   += batch_y.size(0)
                 correct += (predicted == batch_y[:,0]).sum().item()
                 #print("Total is now %.2f, Correct is now %.2f" % (total,correct))
@@ -1358,11 +1357,12 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
                     if reduceLR:
                         scheduler.step(loss)
                 
-                runningloss += float(loss.item())
+                runningloss += float(loss.item()) # Accumulate Loss
+                runningmean += correct/total
             
             # Compute the Mean Loss Across Mini-batches
-            meanloss_batch = runningloss/len(data_loader)
-            meanacc_batch  = correct/total
+            meanloss_batch = runningloss/len(data_loader) 
+            meanacc_batch  = runningmean/len(data_loader) # correct/total
             
             if verbose: # Print progress message
                 print('{} Set: Epoch {:02d}. loss: {:3f}. acc: {:.3f}%'.format(mode, epoch+1, \
