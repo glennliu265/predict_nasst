@@ -33,7 +33,7 @@ from torch import nn
 datpath       = "../../CESM_data/"
 
 # Figure output path. User selected.
-figpath       = "/Users/gliu/Downloads/02_Research/01_Projects/04_Predict_AMV/02_Figures/20231020/"
+figpath       = "/Users/gliu/Downloads/02_Research/01_Projects/04_Predict_AMV/02_Figures/20231101/"
 
 # -----------------------------------------------------------------------
 #%% Module and (Raw) Data Paths
@@ -120,6 +120,13 @@ FNN128_dict={
     "activations" : [nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
     "dropout"     : 0.5}
 
+# FNN4_128
+FNN6_128_dict={
+    "nlayers"     : 6,
+    "nunits"      : [128,128,128,128,128,128],
+    "activations" : [nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+    "dropout"     : 0.5}
+
 # simplecnn
 simplecnn_dict={
     "cnndropout"     : True,
@@ -128,8 +135,8 @@ simplecnn_dict={
     }
 
 # Assemble the dictionaries ...
-modelnames = ("FNN2"   , "FNN4_120"   , "FNN4_128"   , "simplecnn", "CNN2_LRP")
-indicts    = (FNN2_dict, FNN120_dict  , FNN128_dict  , simplecnn_dict, simplecnn_dict)
+modelnames = ("FNN2"   , "FNN4_120"   , "FNN4_128"   , "simplecnn", "CNN2_LRP","FNN6_128")
+indicts    = (FNN2_dict, FNN120_dict  , FNN128_dict  , simplecnn_dict, simplecnn_dict, FNN6_128_dict)
 nn_param_dict = dict(zip(modelnames,indicts))
 
 # -----------------------------------------------------------------------

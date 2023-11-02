@@ -54,7 +54,6 @@ import train_cesm_params as train_cesm_params
 import amv_dataloader as dl
 import amvmod as am
 
-
 # Load Predictor Information
 bbox          = pparams.bbox
 # Import general utilities from amv module
@@ -69,11 +68,11 @@ from amv import proc
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN4_128_SingleVar_PaperRun"
+expdir              = "FNN6_128_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Set some looping parameters and toggles
-varnames            = ['TAUCURL','TAUX','TAUY']#"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
+varnames            = ['SST','SSH']#"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
 leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
@@ -219,6 +218,7 @@ for v,varname in enumerate(varnames):
         # 07. Loop by Leadtime...
         # -----------------------
         for l,lead in enumerate(leads):
+            lt = time.time()
             
             # Set names for intermediate saving, based on leadtime
             if (lead == leads[-1]) and (len(leads)>1): # Output all files together
@@ -308,6 +308,7 @@ for v,varname in enumerate(varnames):
                       'thresholds_all' : thresholds_all,
                       'exp_params'     : eparams,
                       'sample_sizes'   : sample_sizes,
+                      'runtime'        : time.time() - lt
                       }
                       )
             

@@ -50,6 +50,7 @@ Current Experiments
     FNN4_128_SingleVar_PaperRun                             : 100-epoch run for Predict AMV Draft
     FNN4_128_SingleVar_PaperRun_detrended                   : Detrended version of above run
     CNN2_PaperRun                                           : Corresponding CNN2 run with architecture that works with Captum
+    FNN6_128_SingleVar_PaperRun                             : 100 epoch run for 6-layer FNN
     
 """
 
@@ -653,6 +654,25 @@ expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy
 
 # Set custom/new params
 expdict['detrend']        = 1
+train_params_all[expname] = expdict.copy()
+
+#%% FNN6_128_SingleVar_PaperRun_detrended
+
+"""
+FNN6_128_SingleVar_PaperRun_detrended
+
+Run with 6 layers
+
+"""
+
+# # Create Experiment Directory (note that expname = expdir in the original script)
+expname                    = "FNN6_128_PaperRun"
+
+# Copy dictionary from above
+expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy()
+
+# Set custom/new params
+expdict['netname']        = "FNN6_128"
 train_params_all[expname] = expdict.copy()
 
 #%% FNN4_128_SingleVar_Norm0
