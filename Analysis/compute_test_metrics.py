@@ -67,7 +67,7 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "CNN2_PaperRun"
+expdir              = "FNN6_128_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Processing Options
@@ -80,7 +80,7 @@ datpath             = pparams.datpath
 dataset_name        = "CESM1"
 
 # Set some looping parameters and toggles
-varnames            = ["SSH","SST","SLP","SSS","NHFLX"]       # Names of predictor variables
+varnames            = ["SSH","SST",]       # Names of predictor variables
 leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
@@ -94,7 +94,6 @@ innepsilon     = 1e-2
 save_all_relevances = False                # True to save all relevances (~33G per file...)
 checkgpu            = True                 # Set to true to check if GPU is availabl
 debug               = False                 # Set verbose outputs
-savemodel           = True                 # Set to true to save model weights
 
 # Save looping parameters into parameter dictionary
 eparams['varnames'] = varnames
@@ -435,7 +434,7 @@ for v in range(nvars):
                 outname    = "%s%s/Metrics/Test_Metrics_%s_%s_evensample%i_%s.npy" % (datpath,expdir,dataset_name,varname,even_sample,save_vars_name[sv])
                 np.save(outname,save_vars[sv],allow_pickle=True)
                 print("Saved %s to %s in %.2fs" % (save_vars_name[sv],outname,time.time()-st_acc))
-
+    
     # ===================================================
     #%% Save accuracy and prediction data
     # ===================================================
