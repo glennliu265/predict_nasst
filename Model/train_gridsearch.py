@@ -136,8 +136,8 @@ varname    = varnames[0]
 predictors = data[[0],...] # Get selected predictor
 
 # For FNN4, just test the number of layers and units
-nlayers  = [10,]      # Number of Layers
-nunits   = [64,128,256] # Number of Units
+nlayers  = [12,14,16]      # Number of Layers
+nunits   = [128,] # Number of Units
 #dropouts = [0.5,0] # Useing Dropout Layer 
 
 # Set up testing dictionary
