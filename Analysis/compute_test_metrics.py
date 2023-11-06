@@ -385,7 +385,7 @@ for v in range(nvars):
                     
                     # Make Corresponding predictor composites
                     correct_predictors               = predictor_all[l][correct_pred_id,...]
-                    predictor_composites[l,nr.c,:,:]    = correct_predictors.mean(0)
+                    predictor_composites[l,nr,c,:,:]    = correct_predictors.mean(0)
                     predictor_variances[l,nr,c,:,:]     = correct_predictors.var(0)
                     
                     # Make Incorrect Composites
