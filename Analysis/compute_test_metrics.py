@@ -426,7 +426,7 @@ for v in range(nvars):
             if "relevance" in svname:
                 coord_in = coords_relevances
             elif "predictor" in svname:
-                coord_in = coords_preds
+                coord_in = coords_relevances
             elif "ncorrect" in svname:
                 coord_in = coords_counts
             
