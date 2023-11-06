@@ -80,7 +80,7 @@ datpath             = pparams.datpath
 dataset_name        = "CESM1"
 
 # Set some looping parameters and toggles
-varnames            = ["SSH","SST",]       # Names of predictor variables
+varnames            = ["SSS","SLP",]       # Names of predictor variables
 leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
