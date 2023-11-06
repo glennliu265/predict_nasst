@@ -67,7 +67,7 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN6_128_PaperRun"
+expdir              = "FNN4_128_SingleVar_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Processing Options
@@ -80,7 +80,7 @@ datpath             = pparams.datpath
 dataset_name        = "CESM1"
 
 # Set some looping parameters and toggles
-varnames            = ["SSS","SLP",]       # Names of predictor variables
+varnames            = ["SSS","SLP","SSH","SST"]       # Names of predictor variables
 leads               = np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
@@ -344,9 +344,14 @@ for v in range(nvars):
         relevance_composites = np.zeros((nlead,nmodels,3,nlat,nlon)) * np.nan # [lead x model x class x lat x lon]
         relevance_variances  = relevance_composites.copy()                    # [lead x model x class x lat x lon]
         relevance_range      = relevance_composites.copy()                    # [lead x model x class x lat x lon]
-        predictor_composites = np.zeros((nlead,3,nlat,nlon)) * np.nan         # [lead x class x lat x lon]
+        predictor_composites = np.zeros((nlead,nmodels,3,nlat,nlon)) * np.nan         # [lead x class x lat x lon]
         predictor_variances  = predictor_composites.copy()                    # [lead x class x lat x lon]
         ncorrect_byclass     = np.zeros((nlead,nmodels,3))                # [lead x model x class
+        
+        # Preallocate incorrect arrays
+        incorrect_relevance_composites = np.zeros((nlead,nmodels,3,nlat,nlon)) * np.nan
+        incorrect_predictor_composites = np.zeros((nlead,nmodels,3,nlat,nlon)) * np.nan
+        nincorrect_byclass   = np.zeros((nlead,nmodels,3))
         
         for l in range(nlead):
             
@@ -364,8 +369,14 @@ for v in range(nvars):
                     ncorrect                        = len(correct_pred_id)
                     ncorrect_byclass[l,nr,c]        = ncorrect
                     
+                    # Get Incorrect data
+                    incorrect_ids                   = np.where(targets_all[l][class_indices] != predictions_model[class_indices])
+                    incorrect_pred_id               = class_indices[incorrect_ids]
+                    nincorrect_byclass[l,nr,c]      = len(incorrect_pred_id)
+                    
                     if ncorrect == 0:
                         continue # Set NaN to model without any results
+                    
                     # Make Composite
                     correct_relevances               =  relevances_model[correct_pred_id,...]
                     relevance_composites[l,nr,c,:,:] =  correct_relevances.mean(0)
@@ -374,8 +385,15 @@ for v in range(nvars):
                     
                     # Make Corresponding predictor composites
                     correct_predictors               = predictor_all[l][correct_pred_id,...]
-                    predictor_composites[l,c,:,:]    = correct_predictors.mean(0)
-                    predictor_variances[l,c,:,:]     = correct_predictors.var(0)
+                    predictor_composites[l,nr.c,:,:]    = correct_predictors.mean(0)
+                    predictor_variances[l,nr,c,:,:]     = correct_predictors.var(0)
+                    
+                    # Make Incorrect Composites
+                    incorrect_relevances                       =  relevances_model[incorrect_pred_id,...]
+                    incorrect_relevance_composites[l,nr,c,:,:] =  incorrect_relevances.mean(0)
+                    incorrect_predictors                       =  predictor_all[l][incorrect_pred_id,...]
+                    incorrect_predictor_composites[l,nr,c,:,:] =  incorrect_predictors.mean(0)
+                    
         print("Saved Relevance Composites in %.2fs" % (time.time()-st_rel_comp))
             
         # ===================================================
@@ -389,9 +407,10 @@ for v in range(nvars):
         lon = load_dict['lon']
         
         # Save variables
-        save_vars      = [relevance_composites,relevance_variances,relevance_range,predictor_composites,predictor_variances,ncorrect_byclass]
+        save_vars      = [relevance_composites,relevance_variances,relevance_range,predictor_composites,predictor_variances,ncorrect_byclass,
+                          incorrect_relevance_composites,incorrect_predictor_composites,nincorrect_byclass]
         save_vars_name = ['relevance_composites','relevance_variances','relevance_range','predictor_composites','predictor_variances',
-                          'ncorrect_byclass']
+                          'ncorrect_byclass','incorrect_relevance_composites','incorrect_predictor_composites','nincorrect_byclass']
         
         # Make Coords
         coords_relevances = {"lead":leads,"runid":runids,"class":pparams.classes,"lat":lat,"lon":lon}
@@ -414,7 +433,7 @@ for v in range(nvars):
             da = xr.DataArray(save_vars[sv],dims=coord_in,coords=coord_in,name=svname)
             encodings[svname] = {'zlib':True}
             ds_all.append(da)
-            
+        
         # Merge into dataset
         ds_all = xr.merge(ds_all)
         
