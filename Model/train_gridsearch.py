@@ -60,7 +60,7 @@ runids              = np.arange(0,50,1)    # Which runs to do
 # Other toggles
 checkgpu            = True                 # Set to true to check if GPU is availabl
 debug               = True                 # Set verbose outputs
-savemodel           = True                 # Set to true to save model weights
+savemodel           = False                 # Set to true to save model weights
 
 # Save looping parameters into parameter dictionary
 eparams['varnames'] = varnames
@@ -300,7 +300,7 @@ for nc in range(ncombos): # Loop for each combination -------------------------
             # 13. Save the model and metrics
             # ------------------------------
             if savemodel:
-                modout = "%s/Models/%s_lead%02i_classify.pt" %(outdir,varname,lead)
+                modout = "%s/Models/%s_lead%02i_classify_run%03i.pt" %(outdir,varname,lead,runid)
                 torch.save(model.state_dict(),modout)
             
             # Save Metrics
