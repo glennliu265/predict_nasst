@@ -130,7 +130,7 @@ FNN6_128_dict={
 # FNN4_128
 FNN10_128_dict={
     "nlayers"     : 10,
-    "nunits"      : [128,128,128,128,128,128],
+    "nunits"      : [128,]*10,
     "activations" : [nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
     "dropout"     : 0.5}
 
