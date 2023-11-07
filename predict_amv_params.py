@@ -127,6 +127,13 @@ FNN6_128_dict={
     "activations" : [nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
     "dropout"     : 0.5}
 
+# FNN4_128
+FNN10_128_dict={
+    "nlayers"     : 10,
+    "nunits"      : [128,128,128,128,128,128],
+    "activations" : [nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+    "dropout"     : 0.5}
+
 # simplecnn
 simplecnn_dict={
     "cnndropout"     : True,
@@ -135,8 +142,8 @@ simplecnn_dict={
     }
 
 # Assemble the dictionaries ...
-modelnames = ("FNN2"   , "FNN4_120"   , "FNN4_128"   , "simplecnn", "CNN2_LRP","FNN6_128")
-indicts    = (FNN2_dict, FNN120_dict  , FNN128_dict  , simplecnn_dict, simplecnn_dict, FNN6_128_dict)
+modelnames = ("FNN2"   , "FNN4_120"   , "FNN4_128"   , "simplecnn", "CNN2_LRP","FNN6_128","FNN10_128")
+indicts    = (FNN2_dict, FNN120_dict  , FNN128_dict  , simplecnn_dict, simplecnn_dict, FNN6_128_dict,FNN10_128_dict)
 nn_param_dict = dict(zip(modelnames,indicts))
 
 # -----------------------------------------------------------------------

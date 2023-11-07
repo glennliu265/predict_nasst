@@ -656,10 +656,10 @@ expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy
 expdict['detrend']        = 1
 train_params_all[expname] = expdict.copy()
 
-#%% FNN6_128_SingleVar_PaperRun_detrended
+#%% FNN6_128_SingleVar_PaperRun
 
 """
-FNN6_128_SingleVar_PaperRun_detrended
+FNN6_128_SingleVar_PaperRun
 
 Run with 6 layers
 
@@ -673,6 +673,25 @@ expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy
 
 # Set custom/new params
 expdict['netname']        = "FNN6_128"
+train_params_all[expname] = expdict.copy()
+
+#%% FNN10_128_SingleVar_PaperRun
+
+"""
+FNN10_128_SingleVar_PaperRun
+
+Run with 10 layers
+
+"""
+
+# # Create Experiment Directory (note that expname = expdir in the original script)
+expname                    = "FNN10_128_PaperRun"
+
+# Copy dictionary from above
+expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy()
+
+# Set custom/new params
+expdict['netname']        = "FNN10_128"
 train_params_all[expname] = expdict.copy()
 
 #%% FNN4_128_SingleVar_Norm0
