@@ -68,12 +68,12 @@ from amv import proc
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN10_128_PaperRun"
+expdir              = "FNN4_128_SingleVar_PaperRun_NoIceMask"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Set some looping parameters and toggles
 varnames            = ['SSH','SST','SSS','SLP'] #"SST","SSS","SLP","NHFLX",]       # Names of predictor variables
-leads               = np.arange(0,26,1)    # Prediction Leadtimes
+leads               = np.arange(0,26,5)#np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
 # Other toggles

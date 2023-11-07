@@ -694,6 +694,24 @@ expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy
 expdict['netname']        = "FNN10_128"
 train_params_all[expname] = expdict.copy()
 
+#%% FNN4_128_SingleVar_PaperRun_NoMask
+"""
+FNN10_128_SingleVar_PaperRun
+
+Run with 10 layers
+
+"""
+
+# # Create Experiment Directory (note that expname = expdir in the original script)
+expname                    = "FNN4_128_SingleVar_PaperRun_NoIceMask"
+
+# Copy dictionary from above
+expdict                   = train_params_all["FNN4_128_SingleVar_PaperRun"].copy()
+
+# Set custom/new params
+expdict['mask'] = "CESM1LE_HTR_limask_pacificmask_enssum_lon-90to20_lat0to90_lf030_if100.nc"
+train_params_all[expname] = expdict.copy()
+
 #%% FNN4_128_SingleVar_Norm0
 
 """

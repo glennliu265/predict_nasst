@@ -860,7 +860,7 @@ def prepare_predictors_target(varnames,eparams,debug=False,
     # 2. Load land-ice mask and apply, eparams['mask']
     # ------------------
     if eparams['mask']:
-        limask                         = dl.load_limask(bbox=eparams['bbox'])
+        limask                         = dl.load_limask(bbox=eparams['bbox'],maskname=eparams['mask'])
         data                           = data * limask[None,None,None,:,:]  # NaN Points to Zero
     
     # ------------------
@@ -1700,10 +1700,10 @@ def build_simplecnn(num_classes,cnndropout=False,unfreeze_all=False
     
     # 2 layer CNN settings
     nchannels     = [32,64]
-    filtersizes   = [[2,3],[3,3]]
+    filtersizes   = [[2,3],[2,3]]
     filterstrides = [[1,1],[1,1]]
-    poolsizes     = [[2,3],[2,3]]
-    poolstrides   = [[2,3],[2,3]]
+    poolsizes     = [[3,3],[3,3]]
+    poolstrides   = [[1,1],[1,1]]
     firstlineardim = calc_layerdims(nlat,nlon,filtersizes,filterstrides,poolsizes,poolstrides,nchannels)
     if cnndropout: # Include Dropout
         layers = [
@@ -1718,7 +1718,7 @@ def build_simplecnn(num_classes,cnndropout=False,unfreeze_all=False
                 nn.ReLU(),
                 #nn.Sigmoid(),
                 nn.MaxPool2d(kernel_size=poolsizes[1]),
-
+                
                 nn.Flatten(),
                 nn.Linear(in_features=firstlineardim,out_features=64),
                 #nn.Tanh(),

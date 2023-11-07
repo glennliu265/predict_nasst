@@ -51,9 +51,11 @@ datpath         = None # Can manually set here, or will use path in predict_amv_
 
 # Indicate Mask Settings
 vnames          = ("LANDFRAC","ICEFRAC")   # Variables
-mthres          = (0.30,0.05)              # Mask out if grid ever exceeds this value
+mthres          = (0.30,1.00)              # Mask out if grid ever exceeds this value
 mask_sep        = True                     # Save separate masks (in addition to combined)
 save_max        = True                     # Output max concentration for debugging
+
+fracname        = "lf%03i_if%03i" % (mthres[0]*100,mthres[1]*100)
 
 # General Information
 nens            = 42    # Number of ensemble members to process
@@ -136,14 +138,14 @@ for v in range(nvars):
 limask = masks[0] * masks[1]
 
 # Save for all ensemble members [Ens x Lat x Lon]
-savename    = "%sCESM1LE_%s_limask_allens.nc" % (outpath,mconfig)
+savename    = "%sCESM1LE_%s_limask_allens_%s.nc" % (outpath,mconfig,fracname)
 da          = proc.numpy_to_da(limask,np.arange(1,43),lat,lon,"MASK",savenetcdf=savename)
 print(savename)
 
 # Save separate masks for land and ice [Ens x Lat x Lon]
 if mask_sep:
     for v in range(nvars):
-        savename    = "%sCESM1LE_%s_%s_mask_allens.nc" % (outpath,mconfig,vnames[v])
+        savename    = "%sCESM1LE_%s_%s_mask_allens_%s.nc" % (outpath,mconfig,vnames[v],fracname)
         da          = proc.numpy_to_da(masks[v],np.arange(1,43),lat,lon,"MASK",savenetcdf=savename)
         print(savename)
 
@@ -156,7 +158,7 @@ if debug: # Check ensemble sum,  land-ice mask
 # Taken from landicemask_comparison.ipynb
 
 # Load the data from above
-savename    = "%sCESM1LE_%s_limask_allens.nc" % (outpath,mconfig)
+savename    = "%sCESM1LE_%s_limask_allens_%s.nc" % (outpath,mconfig,fracname)
 ds          = xr.open_dataset(savename)
 limask      = ds.MASK.values
 lon         = ds.lon.values
@@ -215,11 +217,9 @@ if debug:
 
 locfn,loctitle = proc.make_locstring_bbox(bbox_crop)
 
-savename    = "%sCESM1LE_%s_limask_pacificmask_enssum_%s.nc" % (outpath,mconfig,locfn)
+savename    = "%sCESM1LE_%s_limask_pacificmask_enssum_%s_%s.nc" % (outpath,mconfig,locfn,fracname)
 da          = proc.numpy_to_da(maskreg[None,...],[1,],latr,lonr,"MASK",savenetcdf=savename)
 print(savename)
-
-
 #%%
 
 
