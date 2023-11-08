@@ -67,8 +67,9 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN4_128_SingleVar_PaperRun_NoIceMask"
+expdir              = "FNN4_128_SingleVar_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
+outdir_cust         = "e-rule/" #Set to None or a custom directory within Metrics
 
 # Processing Options
 even_sample         = False
@@ -81,14 +82,14 @@ dataset_name        = "CESM1"
 
 # Set some looping parameters and toggles
 varnames            = ["SSS","SLP","SSH","SST"]       # Names of predictor variables
-leads               = np.arange(0,26,5)#np.arange(0,26,1)    # Prediction Leadtimes
+leads               = np.arange(0,26,1)#np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
 # LRP Parameters
 innexp         = 2
-innmethod      ='b-rule'
+innmethod      ='e-rule'
 innbeta        = 0.1
-innepsilon     = 1e-2
+innepsilon     = 1e-6
 
 # Other toggles
 save_all_relevances = False                # True to save all relevances (~33G per file...)
@@ -304,7 +305,8 @@ for v in range(nvars):
                 nsamples_lead = len(y_actual)
                 inn_model = InnvestigateModel(pmodel, lrp_exponent=innexp,
                                                   method=innmethod,
-                                                  beta=innbeta)
+                                                  beta=innbeta,
+                                                  episolon=innepsilon)
                 model_prediction, sample_relevances = inn_model.innvestigate(in_tensor=X_torch)
                 model_prediction                    = model_prediction.detach().numpy().copy()
                 sample_relevances                   = sample_relevances.detach().numpy().copy()
@@ -438,9 +440,16 @@ for v in range(nvars):
         ds_all = xr.merge(ds_all)
         
         # Save Relevance data
-        outname    = "%s%s/Metrics/Test_Metrics_%s_%s_evensample%i_relevance_maps.nc" % (datpath,expdir,dataset_name,varname,even_sample)
+        if outdir_cust is not None:
+            outdir_new = "%s%s/Metrics/%s" % outdir_cust
+            proc.makedir(outdir_new)
+            outname    = "%sTest_Metrics_%s_%s_evensample%i_relevance_maps.nc" % (outdir_new,dataset_name,varname,even_sample)
+        else:
+            outname    = "%s%s/Metrics/Test_Metrics_%s_%s_evensample%i_relevance_maps.nc" % (datpath,expdir,dataset_name,varname,even_sample)
         if standardize_input:
             outname = proc.addstrtoext(outname,"_standardizeinput")
+        # if innmethod == 'e-rule':
+        #     outname = proc.addstrtoext(outname,"_epsrule")
         ds_all.to_netcdf(outname,encoding=encodings)
         print("Saved Relevances to %s in %.2fs" % (outname,time.time()-st_rel))
         
@@ -462,7 +471,10 @@ for v in range(nvars):
     save_vars         = [total_acc_all,class_acc_all,predictions_all,targets_all,ens_test,leads,runids]
     save_vars_name    = ["total_acc","class_acc","predictions","targets","ensemble","leads","runids"]
     metrics_dict      = dict(zip(save_vars_name,save_vars))
-    outname           = "%s%s/Metrics/Test_Metrics_%s_%s_evensample%i_accuracy_predictions.npz" % (datpath,expdir,dataset_name,varname,even_sample)
+    if outdir_cust is not None:
+        outname = "%s/Test_Metrics_%s_%s_evensample%i_accuracy_predictions.npz" % (outdir_new,dataset_name,varname,even_sample)
+    else:
+        outname = "%s%s/Metrics/Test_Metrics_%s_%s_evensample%i_accuracy_predictions.npz" % (datpath,expdir,dataset_name,varname,even_sample)
     if standardize_input:
         outname = proc.addstrtoext(outname,"_standardizeinput")
     np.savez(outname,**metrics_dict,allow_pickle=True)
