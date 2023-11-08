@@ -67,7 +67,7 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN4_128_SingleVar_PaperRun"
+expdir              = "FNN4_128_SingleVar_PaperRun_NoIceMask"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Processing Options
@@ -81,7 +81,7 @@ dataset_name        = "CESM1"
 
 # Set some looping parameters and toggles
 varnames            = ["SSS","SLP","SSH","SST"]       # Names of predictor variables
-leads               = np.arange(0,26,1)    # Prediction Leadtimes
+leads               = np.arange(0,26,5)#np.arange(0,26,1)    # Prediction Leadtimes
 runids              = np.arange(0,100,1)    # Which runs to do
 
 # LRP Parameters
