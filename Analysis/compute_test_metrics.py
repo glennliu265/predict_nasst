@@ -306,7 +306,7 @@ for v in range(nvars):
                 inn_model = InnvestigateModel(pmodel, lrp_exponent=innexp,
                                                   method=innmethod,
                                                   beta=innbeta,
-                                                  episolon=innepsilon)
+                                                  epsilon=innepsilon)
                 model_prediction, sample_relevances = inn_model.innvestigate(in_tensor=X_torch)
                 model_prediction                    = model_prediction.detach().numpy().copy()
                 sample_relevances                   = sample_relevances.detach().numpy().copy()
