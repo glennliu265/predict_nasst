@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Test selected networks on reanalysis
+Test selected networks on reanalysis or observation based dataset
 
-- Works with reanalysis dataset preprocessed in 
+- Works with gridded obs/reanalysis dataset preprocessed in 
 - 
     Copied upper section from test_predictor_uncertainty
 
