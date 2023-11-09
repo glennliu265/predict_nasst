@@ -69,7 +69,7 @@ nn_param_dict      = pparams.nn_param_dict
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
 expdir              = "FNN4_128_SingleVar_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
-outdir_cust         = "e-rule/" #Set to None or a custom directory within Metrics
+outdir_cust         = "e-rule_exp1/" #Set to None or a custom directory within Metrics
 
 # Processing Options
 even_sample         = False
@@ -86,10 +86,10 @@ leads               = np.arange(0,26,1)#np.arange(0,26,1)    # Prediction Leadti
 runids              = np.arange(0,100,1)    # Which runs to do
 
 # LRP Parameters
-innexp         = 2
+innexp         = 1
 innmethod      ='e-rule'
 innbeta        = 0.1
-innepsilon     = 1e-6
+innepsilon     = 1e-2
 
 # Other toggles
 save_all_relevances = False                # True to save all relevances (~33G per file...)
