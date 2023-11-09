@@ -441,7 +441,7 @@ for v in range(nvars):
         
         # Save Relevance data
         if outdir_cust is not None:
-            outdir_new = "%s%s/Metrics/%s" % outdir_cust
+            outdir_new = "%s%s/Metrics/%s" % (datpath,expdir,outdir_cust)
             proc.makedir(outdir_new)
             outname    = "%sTest_Metrics_%s_%s_evensample%i_relevance_maps.nc" % (outdir_new,dataset_name,varname,even_sample)
         else:
