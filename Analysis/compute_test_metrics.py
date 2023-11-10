@@ -67,9 +67,9 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN4_128_SingleVar_PaperRun"
+expdir              = "FNN10_128_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
-outdir_cust         = "e-rule_exp1/" #Set to None or a custom directory within Metrics
+outdir_cust         = None#"e-rule_exp1/" #Set to None or a custom directory within Metrics
 
 # Processing Options
 even_sample         = False
