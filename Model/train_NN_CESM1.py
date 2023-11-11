@@ -68,7 +68,7 @@ from amv import proc
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN10_128_PaperRun_Detrended"
+expdir              = "FNN6_128_PaperRun_Detrended"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 
 # Set some looping parameters and toggles
