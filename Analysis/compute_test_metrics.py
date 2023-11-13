@@ -67,7 +67,7 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN6_128_PaperRun_Detrended"
+expdir              = "FNN10_128_PaperRun_Detrended"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 outdir_cust         = None#"e-rule_exp1/" #Set to None or a custom directory within Metrics
 
@@ -86,8 +86,8 @@ leads               = np.arange(0,26,1)#np.arange(0,26,1)    # Prediction Leadti
 runids              = np.arange(0,100,1)    # Which runs to do
 
 # LRP Parameters
-innexp         = 1
-innmethod      ='e-rule'
+innexp         = 2
+innmethod      ='b-rule'
 innbeta        = 0.1
 innepsilon     = 1e-2
 
