@@ -333,3 +333,5 @@ for v in range(len(varnames)):
                     'lat'         : lat,
                     },allow_pickle=True)
                 print("Finished in %.2fs" % (time.time()-st))
+            
+            del pmodel
