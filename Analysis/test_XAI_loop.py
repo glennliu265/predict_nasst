@@ -83,9 +83,11 @@ datpath             = pparams.datpath
 dataset_name        = "CESM1"
 
 # Set some looping parameters and toggles
-varnames            = ["SSH","SST","SSS","SLP"]       # Names of predictor variables
-leads               = np.arange(0,30,5)#[]#np.arange(0,26,1)    # Prediction Leadtimes
-runids              = np.arange(0,100,1)    # Which runs to do
+varnames            = ["SST","SSS","SLP","SSH",],       # Names of predictor variables
+leads               = [0,25]#np.arange(0,30,5)#[]#np.arange(0,26,1)    # Prediction Leadtimes
+runids              = [0,]#np.arange(0,100,1)    # Which runs to do
+choose_class        = [0,2]
+
 
 # LRP Parameters
 innexp              = 2
@@ -316,7 +318,9 @@ for v in range(len(varnames)):
             pmodel.load_state_dict(modweights)
             pmodel.eval()
             
-            for iclass in range(3):
+            for ic in range(len(choose_class)):
+                
+                iclass = choose_class[ic]
                 
                 st = time.time()
                 explanations,xai_names,predout= xai_method(pmodel,X_torch,iclass)
