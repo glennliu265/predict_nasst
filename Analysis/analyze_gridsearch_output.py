@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 
-Analyze the Gridsearch Output for FNNs
+Analyze the Hyperparameter Gridsearch Output for FNNs
 
-Copy scetion from train_gridsearch
-
+Copied section from train_gridsearch
 
 Created on Wed Nov  1 17:00:39 2023
 
@@ -79,8 +78,8 @@ eparams['leads']    = leads
 eparams['runids']   = runids
 
 
-
 splabels_class = ['A) NASST+','B) Neutral','C) NASST-']
+splabels_class2 = ['A) NASST+','B) NASST-']
 # ----------------------------------------------
 #%% 02. Data Loading, Classify Targets
 # ----------------------------------------------
@@ -170,7 +169,7 @@ ncombos            = len(param_combinations)
 print(ntotal == len(param_combinations))
 
 #  -------------------------
-#%% Load the Metrics
+#%% Load the FNN Metrics
 # --------------------------
 
 combo_names = []
@@ -420,6 +419,95 @@ for iclass in range(3):
 savename = "%sFNN4_ParamTesting_%s_classALL.png" % (figpath,varname)
 plt.savefig(savename,dpi=150,bbox_inches='tight')
 
+#%% Fig. S1 : FNN4 Hyperparams, but just NASST+ and NASST- (Figure S1, Revision 01)
+
+class_choose = [0,2]
+
+#idori_dropout = param_combinations.index((4, 128, True))
+idori_nodrop  = param_combinations.index((4, 128, False))
+idori         = [idori_nodrop]
+
+fsz_axlbl    = 20
+fsz_splbl    = 28
+fsz_tklbl    = 18
+leadticks    = np.arange(0,26,5)
+
+fig,axs = plt.subplots(2,1,constrained_layout=True,figsize=(16.5,10))
+
+for a in range(2):
+    iclass = class_choose[a]
+    ax = axs[a]
+    if iclass in [0,2]:
+        xlm = [0.4,1]
+    else:
+        xlm = [0,1]
+    
+    ax = viz.add_ticks(ax,facecolor="#eaeaf2",grid_lw=1.5,grid_col="w",grid_ls="solid",
+                    spinecolor="darkgray",tickcolor="dimgray",
+                    ticklabelcolor="k",fontsize=fsz_tklbl)
+    
+        
+    viz.label_sp(splabels_class2[a],labelstyle="%s",usenumber=True,
+                 ax=ax,fig=fig,fontsize=fsz_splbl,
+             alpha=0.2,x=0.)
+    
+    for nc in range(ncombos):
+        
+        pcomb = param_combinations[nc]
+        
+        if pcomb[-1] == True:
+            continue
+        
+        if pcomb[0] == 2:
+            ls = 'dotted'
+            c  = "red"
+        elif pcomb[0] == 4:
+            ls = 'dashed'
+            c  = "goldenrod"
+        elif pcomb[0] == 6:
+            ls = 'solid'
+            c  = "darkblue"
+        elif pcomb[0] == 8:
+            ls = 'dashdot'
+            c  = 'violet'
+        elif pcomb[0] == 10:
+            ls = 'solid'
+            c  = "gold"
+        
+        if pcomb[1] == 64:
+            #alpha = 0.2
+            marker = "v"
+        elif pcomb[1] == 128:
+            #alpha = 0.6
+            marker = 'd'
+        elif pcomb[1] == 256:
+            #alpha = 1
+            marker = '^'
+        alpha = 1
+        plot_acc = accs_all[nc,:,:,iclass].mean(0)
+        lbl = combo_names[nc].replace("_dropoutFalse","")
+        if nc in idori:
+            
+            ax.plot(leads,plot_acc,label=lbl,ls=ls,color="k",alpha=alpha,marker=marker)
+        else:
+            ax.plot(leads,plot_acc,label=lbl,ls=ls,alpha=alpha,marker=marker,color=c)
+    
+    
+    #ax.set_title("Predictor: %s, Class: %s" % (varname,pparams.classes[iclass]))
+    ax.set_ylim([xlm[0],xlm[-1]])
+    ax.set_xlim([0,25])
+    #ax.axhline([.6],label="Original Acc. (PaperRun)",color="k",ls='dashed')
+    ax.set_ylabel("Validation Accuracy",fontsize=fsz_axlbl)
+    if a == 0:
+        ax.legend(ncol=5,fontsize=14,loc=[.035,.65],framealpha=0.3)
+    elif a == 1:
+        ax.set_xlabel("Leadtime (Years)",fontsize=fsz_axlbl)
+#plt.suptitle("Predictor: %s" % (varname))
+savename = "%sFNN4_ParamTesting_%s_classALL.png" % (figpath,varname)
+plt.savefig(savename,dpi=150,bbox_inches='tight')
+
+
+
 # -------------------------------------------------------------
 # %% III. Compare # of Layers
 # -------------------------------------------------------------
@@ -667,82 +755,6 @@ plt.savefig(savename,dpi=150,bbox_inches='tight')
 
 expdir2 = "CNN2_PaperRun"
 
-#%% Make Param Combinations (Note Skip this since I didn't run all combinations...)
-# """
-# Let's set up a simpler test, where:
-#     (1) strides + filter sizes are symmetric, and 
-#     (2) the pool and filter sizes are also the same...
-    
-# Option for future work:
-#     Develop more extensive hyperparameter tests
-#     where the filter vs pool sizes are different, or where the strides
-#     are symmetric...
-# """
-
-# # Set some dimensions
-# in_channels = 1 # Input Channels, Let's use single predictors first
-# num_classes = 3 # Number of output classes (+) or (-) NASST
-
-# # Set the Test Values
-# nchannels     = ([32,],[32,64],[32,64,128]) 
-# filtersizes   = ([2,2],[3,3],[4,4])
-# filterstrides = (1,2,3,4)
-# poolsizes     = copy.deepcopy(filtersizes)
-# poolstrides   = copy.deepcopy(filterstrides)
-
-# # Set up testing dictionary (simple test)
-# test_param_names   = ["nchannels","filtersizes","filterstrides",]
-# test_param_values  = [nchannels  ,filtersizes  ,filterstrides  ,]
-# test_params        = dict(zip(test_param_names,test_param_values))
-# param_combinations = list(itertools.product(*test_param_values))
-# ncombos            = len(param_combinations)
-
-# # Set up dictionaries and build CNNs ---------
-# all_cnns    = []
-# expnames    = []
-# param_dicts = []
-# fcsize_fin = []
-# for n in range(ncombos):
-    
-#     # Create Parameter Dictionary
-#     nchannels,filtersize,stridesize=param_combinations[n]
-#     stridesize_in = [stridesize,stridesize]
-#     nlayers = len(nchannels)
-#     cnn_param_dict = {
-#         "nchannels"     : nchannels,
-#         "filtersizes"   : [filtersize,]*nlayers,
-#         "filterstrides" : [stridesize_in,]*nlayers,
-#         "poolsizes"     : [filtersize,]*nlayers,
-#         "poolstrides"   : [stridesize_in,]*nlayers,
-#         "activations"   : [nn.ReLU(),]*nlayers,
-#         "dropout"       : 0,
-#         }
-#     # Build CNN
-#     cnnmod = am.build_simplecnn_fromdict(cnn_param_dict,num_classes,
-#                         nlat=nlat,nlon=nlon,num_inchannels=in_channels)
-    
-#     # Check Final Layer Size
-#     fcfinal = am.calc_layerdims(nlon,nlat,
-#                                 cnn_param_dict['filtersizes'],
-#                                 cnn_param_dict['filterstrides'],
-#                                 cnn_param_dict['poolsizes'],
-#                                 cnn_param_dict['poolstrides'],
-#                                 cnn_param_dict['nchannels'],
-#                                 )
-    
-#     # Set Name
-#     expname = "nlayers%i_filtersize%i_stride%i" % (nlayers,filtersize[0],stridesize)
-#     if fcfinal == 0:
-#         print("Combo is not valid: %s" % (expname))
-#         continue
-    
-#     # Append Everything
-#     fcsize_fin.append(fcfinal)
-#     all_cnns.append(cnnmod)
-#     expnames.append(expname)
-#     param_dicts.append(cnn_param_dict)
-
-
 # Glob All Sets
 cnnpath = "/Users/gliu/Downloads/02_Research/01_Projects/04_Predict_AMV/03_Scripts/CESM_data/CNN2_PaperRun/ParamTesting/"
 cnnexps  = [os.path.basename(x) for x in glob.glob(cnnpath + "nlayers*")]
@@ -779,9 +791,8 @@ cnnexp_list = {
     'filter'  : cnnexp_filter,
     }
 
-
 #  -------------------------
-#%% Load the Metrics
+#%% Load the CNN Metrics
 # --------------------------
 
 ncombos  = len(cnnexps)
@@ -811,8 +822,7 @@ for nc in range(ncombos): # Loop for each combination -------------------------
         acc = ld['acc_by_class']
         cnn_accs_all[nc,f,:,:] = acc.copy()
 
-#%% Visualize everything
-
+#%% Plot CNN Hyerparameter Tests (All Classes)
 
 fig,axs = plt.subplots(3,1,constrained_layout=True,figsize=(18,10))
 
@@ -896,9 +906,93 @@ for iclass in range(3):
 savename = "%sCNN2_ParamTesting_%s_classALL.png" % (figpath,varname)
 plt.savefig(savename,dpi=150,bbox_inches='tight')
 
+#%% Fig S2. Redo but just focus on NASST+ and NASST- (Figure S2 of Revision 01!!)
+
+fig,axs = plt.subplots(2,1,constrained_layout=True,figsize=(18,10))
+
+class_choose=[0,2]
+for a in range(2):
+    iclass = class_choose[a]
+    
+    ax = axs[a]
+    if iclass in [0,2]:
+        xlm = [0.4,1]
+    else:
+        xlm = [0,1]
+    
+    ax = viz.add_ticks(ax,facecolor="#eaeaf2",grid_lw=1.5,grid_col="w",grid_ls="solid",
+                    spinecolor="darkgray",tickcolor="dimgray",
+                    ticklabelcolor="k",fontsize=18)
+    
+        
+    viz.label_sp(splabels_class2[a],labelstyle="%s",usenumber=True,
+                 ax=ax,fig=fig,fontsize=25,
+             alpha=0.2,x=0.)
+    
+    for nc in range(ncombos):
+        
+        alpha = 1
+        plot_acc = cnn_accs_all[nc,:,:,iclass].mean(0)
+        lbl      = cnn_combo_names[nc].replace("_dropoutFalse","")
+        
+        
+        if "nlayers1" in lbl:
+            #c="red"
+            #marker = "x"
+            ls = "dotted"
+        elif "nlayers2" in lbl:
+            #c='darkblue'
+            #marker="."
+            ls = "dashed"
+        elif "nlayers3" in lbl:
+            #c='violet'
+            #marker="d"
+            ls = "solid"
+            
+        if "filtersize2" in lbl:
+            c="red"
+            #ls = "dotted"
+        elif "filtersize3" in lbl:
+            c='darkblue'
+            #ls = "dashed"
+        elif "filtersize4" in lbl:
+            c='violet'
+           # ls = "solid"
+            
+        
+        if "stride1" in lbl:
+            marker="v"
+            #c = "red"
+        elif "stride2" in lbl:
+            marker="d"
+            #c = "gold"
+        elif "stride3" in lbl:
+            marker="x"
+            #c = "blue"
+        elif "stride4" in lbl:
+            marker="^"
+            #c = "magenta"
+            
+        # if ("stride1" in lbl) and ("filtersize2" in lbl) and ("nlayers2" in lbl):
+        #     print(nc)
+        #     c = 'k'
+        
+        ax.plot(leads,plot_acc,label=lbl,ls=ls,marker=marker,lw=2.5,c=c,markersize=10,alpha=0.8)
+    
+    #ax.set_title("Predictor: %s, Class: %s" % (varname,pparams.classes[iclass]))
+    ax.set_ylim([xlm[0],xlm[-1]])
+    ax.set_xlim([0,25])
+    #ax.axhline([.6],label="Original Acc. (PaperRun)",color="k",ls='dashed')
+    ax.set_ylabel("Validation Accuracy",fontsize=22)
+    if a == 0:
+        ax.legend(ncol=5,fontsize=12.5,loc=(.005,.65),framealpha=0.5)
+    elif a == 1:
+        ax.set_xlabel("Leadtime (Years)",fontsize=22)
+
+savename = "%sCNN2_ParamTesting_%s_classPosNeg.png" % (figpath,varname)
+plt.savefig(savename,dpi=150,bbox_inches='tight')
+
 #%% Make plots comparing accuracy for certain classes
-
-
 
 testparam = "nlayers" # nlayers, stride, filter
 inexps    = cnnexp_list[testparam]
@@ -1029,31 +1123,200 @@ savename = "%sCNN2_ParamTesting_%s_%s_classALL.png" % (figpath,testparam,varname
 plt.savefig(savename,dpi=150,bbox_inches='tight')
 
 
+# -----------------------------------------------------------------------
+#%% VI. Compare Effect of Dropout
+# -----------------------------------------------------------------------
+
+# Set Experiments and Load
+expdir = "FNN4_128_SingleVar_PaperRun"
+
+exps_dropout1  = [
+    "nlayers2_nunits128",
+    "nlayers4_nunits128",
+    "nlayers6_nunits128",
+                ]
+
+exps_dropout0 = [
+    "nlayers2_nunits128_dropoutFalse",
+    "nlayers4_nunits128_dropoutFalse",
+    "nlayers6_nunits128_dropoutFalse",]
+
+exps = np.hstack([exps_dropout0,exps_dropout1])
+
+
+expnames = [
+    "2 Layers (0.5 Dropout)",
+    "4 Layers (0.5 Dropout)",
+    "6 Layers (0.5 Dropout)",
+    "2 Layers (No Dropout)",
+    "4 Layers (No Dropout)",
+    "6 Layers (No Dropout)",
+    ]
+
+ncombos  = len(exps)
+nruns    = len(runids)
+nleads   = len(leads)
+nclasses = len(pparams.classes)
+exp_accs_all = np.full((ncombos,nruns,nleads,nclasses),np.nan)
+for nc in range(ncombos): # Loop for each combination -------------------------
+    ct              = time.time()
+    # Make the experiment string and prepare the folder
+    expstr = cnnexps[nc]
+    print(expstr)
+    outdir = "%s%s/Metrics/" % (cnnpath,expstr)
+    
+    # Retrieve the metrics file
+    flist = glob.glob("%s*%s*ALL.npz" % (outdir,varname))
+    nruns = len(flist)
+    flist.sort()
+    print("Found %i files" % (nruns))
+    
+    # Read the files
+    
+    for f in range(nruns):
+        ld  = np.load(flist[f])
+        acc = ld['acc_by_class']
+        exp_accs_all[nc,f,:,:] = acc.copy()
+
+#%% Visualize Dropout Differences by # of Layers
+
+inexps    = exp_accs_all
+
+fig,axs = plt.subplots(3,1,constrained_layout=True,figsize=(12,10))
+
+ncols = 2
+
+for iclass in range(3):
+
+    ax = axs[iclass]
+    if iclass in [0,2]:
+        xlm = [0.4,1]
+    else:
+        xlm = [0,1]
+    
+    ax = viz.add_ticks(ax,facecolor="#eaeaf2",grid_lw=1.5,grid_col="w",grid_ls="solid",
+                    spinecolor="darkgray",tickcolor="dimgray",
+                    ticklabelcolor="k",fontsize=14)
+    
+        
+    viz.label_sp(pparams.classes[iclass],labelstyle="%s",usenumber=True,
+                 ax=ax,fig=fig,fontsize=18,
+             alpha=0.2,x=0.)
+    
+    for nc in range(ncombos):
+        
+        alpha = 1
+        plot_acc = exp_accs_all[nc,:,:,iclass].mean(0)
+        lbl      = expnames[nc]
+        
+        if "2" in lbl:
+            c='orange'
+        elif "4" in lbl:
+            c='darkblue'
+        elif "6" in lbl:
+            c='violet'
+        
+        if "No" in lbl:
+            ls = 'dotted'
+            marker = "x"
+        else:
+            ls = 'solid'
+            marker = "o"
+        
+        # if lbl not in inexps:
+        #     print("%s not found in %s" % (lbl,inexps)) 
+        #     continue
+        
+        ax.plot(leads,plot_acc,label=lbl,ls=ls,marker=marker,lw=3,c=c)
+    
+    
+    #ax.set_title("Predictor: %s, Class: %s" % (varname,pparams.classes[iclass]))
+    ax.set_ylim([xlm[0],xlm[-1]])
+    ax.set_xlim([0,25])
+    #ax.axhline([.6],label="Original Acc. (PaperRun)",color="k",ls='dashed')
+    ax.set_ylabel("Accuracy",fontsize=16)
+    if iclass == 0:
+        ax.legend(ncol=ncols,fontsize=13.5)
+    elif iclass == 2:
+        ax.set_xlabel("Leadtime (Years)",fontsize=16)
+
+savename = "%sCNN2_ParamTesting_%s_CNNDropout_classALL.png" % (figpath,varname)
+plt.savefig(savename,dpi=150,bbox_inches='tight')
+
+#%% Visualize Dropout Differences by # of Layers
 
 
 
-#%% Calculate some Metrics
+inexps     = exp_accs_all
 
-ilead = 25
+# Dropout minus No Dropout [nlayers x lead x class]
+inexp_diff = inexps[:3,:,:,:].mean(1) - inexps[3:,:,:,:].mean(1)
 
-# accs_all [Combo x Network x Lead x Class]
+# Take Maximum Inter-Network Standard Deviation between Dropout and No Dropout Scenario
+inexp_std  = np.array([inexps[:3,:,:,:].std(1),inexps[3:,:,:,:].std(1)]).max(0) 
 
-# Get values for original network
-idori_dropout = param_combinations.index((4, 128, True))
-idori_nodrop  = param_combinations.index((4, 128, False))
-idori         = [idori_dropout,idori_nodrop]
+fig,axs = plt.subplots(3,1,constrained_layout=True,figsize=(12,10))
 
-# First, get mean acc and stdev over positive and negative AMVs
-mean_acc_extr = accs_all[:,:,ilead,[0,2]].mean(-1) # [combo x network]
+ncols = 2
 
-mu            = mean_acc_extr.mean(1) * 100 # [Combo] 
-stderr        = 2*mean_acc_extr.std(1) / np.sqrt(mean_acc_extr.shape[1]) * 100
-sigma         = mean_acc_extr.std(1) * 100
+for iclass in range(3):
 
-# Compute Difference to mean
-mu_choose     = mu[idori_nodrop]
-mudiff        = mu - mu_choose
+    ax = axs[iclass]
+    
+    ax.axhline([0],ls='solid',lw=0.5,color="k")
+    xlm =  [-.25,.25]
+    ax = viz.add_ticks(ax,facecolor="#eaeaf2",grid_lw=1.5,grid_col="w",grid_ls="solid",
+                    spinecolor="darkgray",tickcolor="dimgray",
+                    ticklabelcolor="k",fontsize=14)
+    
+    
+    viz.label_sp(pparams.classes[iclass],labelstyle="%s",usenumber=True,
+                 ax=ax,fig=fig,fontsize=18,
+             alpha=0.2,x=0.)
+    
+    for nc in range(3):
+        
+        alpha = 1
+        plot_acc    = inexp_diff[nc,:,iclass]#exp_accs_all[nc,:,:,iclass].mean(0)
+        plot_stderr = 2* inexp_std[nc,:,iclass] / np.sqrt(nmodels)
+        lbl      = expnames[nc][:8]
+        
+        
+        if "2" in lbl:
+            c='orange'
+        elif "4" in lbl:
+            c='darkblue'
+        elif "6" in lbl:
+            c='violet'
+        
+        if "No" in lbl:
+            ls = 'dotted'
+            marker = "x"
+        else:
+            ls = 'solid'
+            marker = "o"
+        
+        # if lbl not in inexps:
+        #     print("%s not found in %s" % (lbl,inexps)) 
+        #     continue
+        
+        ax.plot(leads,plot_acc,label=lbl,ls=ls,marker=marker,lw=3,c=c)
+        
+        ax.plot(leads,plot_stderr,color=c,ls='dashed',lw=1,)
+        ax.plot(leads,-plot_stderr,color=c,ls='dashed',lw=1,)
+        #ax.fill_between(leads,-plot_stderr,plot_stderr,color=c,ls='dashed',lw=0.75,alpha=.1)
+        
+    
+    #ax.set_title("Predictor: %s, Class: %s" % (varname,pparams.classes[iclass]))
+    ax.set_ylim([xlm[0],xlm[-1]])
+    ax.set_xlim([0,25])
+    
+    #ax.axhline([.6],label="Original Acc. (PaperRun)",color="k",ls='dashed')
+    ax.set_ylabel("Accuracy Difference \n (Dropout - No Dropout)",fontsize=16)
+    if iclass == 0:
+        ax.legend(ncol=ncols,fontsize=13.5)
+    elif iclass == 2:
+        ax.set_xlabel("Leadtime (Years)",fontsize=16)
 
-
-
-
+savename = "%sCNN2_ParamTesting_%s_CNNDropout_classALL.png" % (figpath,varname)
+plt.savefig(savename,dpi=150,bbox_inches='tight')
