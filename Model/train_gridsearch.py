@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 
-Perform Gridsearch Testing To Examine Sensitivity to Hyperparameter/Architecture Choices
+Perform Gridsearch Testing To Examine Sensitivity to Hyperparameter/Architecture Choices for FNNs
+
+Test different  number of units per layers and number of layers
+
+Output will be saved to "Param_Testing" within the corresponding experiment folder
 
 Created on Fri Oct 20 10:42:35 2023
 
@@ -128,7 +132,7 @@ nnparams_original = pparams.nn_param_dict[eparams['netname']].copy()
 eparams_original   = eparams.copy()
 
 # -----------------------------
-#%% Set some testing parameters
+#%% Set some testing parameters 
 # -----------------------------
 
 # Set some variables needed
@@ -154,6 +158,10 @@ ntotal  = np.prod(nvalues)
 param_combinations = list(itertools.product(*test_param_values))
 ncombos            = len(param_combinations)
 print(ntotal == len(param_combinations))
+
+# -----------------------------
+#%% Loop and and test each one.
+# -----------------------------
 for nc in range(ncombos): # Loop for each combination -------------------------
     pcomb           = param_combinations[nc]
     ct              = time.time()

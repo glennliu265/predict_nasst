@@ -2,12 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 
-Gridsearch Test Script for CNNs
+----------------------------------------------
+Hyperparameter Gridsearch Test Script for CNNs
+----------------------------------------------
+
+Test different filter sizes, stride sizes, pool sizes, and number of
+convolutional + poling layers.
+
+Output will be saved to "Param_Testing" within the corresponding experiment folder
 
 Copied section from train_gridsearch.py (for FNNs)
 
 Created on Mon Oct 23 12:43:26 2023
-
 @author: gliu
 """
 
@@ -131,7 +137,7 @@ predictor_refids --> array of the predictor refids
 nnparams_original = pparams.nn_param_dict[eparams['netname']].copy()
 eparams_original  = eparams.copy()
 
-#%% <Add Some Functions>
+#%% Define Functions
 
 # This has been moved to amvmod
 def build_simplecnn_fromdict(param_dict,num_classes,nlat=224,nlon=224,num_inchannels=3):
@@ -174,7 +180,8 @@ def build_simplecnn_fromdict(param_dict,num_classes,nlat=224,nlon=224,num_inchan
     return layers
 
 
-#%%  A Simple Test
+#%%  A Simple Test to set up combinations.
+# Discard combinations with too many layers (i.e. pooling over 1-pixel feature maps, etc.)
 """
 Let's set up a simpler test, where:
     (1) strides + filter sizes are symmetric, and 
@@ -251,7 +258,7 @@ for n in range(ncombos):
     param_dicts.append(cnn_param_dict)
 
 #%% Now place this into a training loop
-
+# Output will be saved to "Param_Testing" within the corresponding experiment folder
 # Set some variables needed
 varname    = varnames[0]
 predictors = data[[0],...] # Get selected predictor
