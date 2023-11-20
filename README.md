@@ -23,7 +23,7 @@ A subset of the data and results (~1.6 GB) used in Manuscript_Figures.ipynb is a
 5. Visualize output using Analysis scripts.
 
 ## Contents
-![Draft Workflow Image](https://github.com/glennliu265/predict_nasst/blob/main/Figures/Draft_Workflow.png)
+![Draft Workflow Image](https://github.com/glennliu265/predict_nasst/blob/main/Figures/Draft_Workflow.pdf)
 ### Preprocessing
 Scripts for preparing raw CESM1 data into the predictors and targets.
 
@@ -32,4 +32,7 @@ Scripts for training and testing the NNs
 
 ### Analysis
 Scripts for computing test metrics, performing LRP, and visualizing output.
+
+### Working_Copies
+Additional analyses and work in progress--documentation not complete.
 
