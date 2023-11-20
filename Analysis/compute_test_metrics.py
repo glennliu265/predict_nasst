@@ -7,11 +7,10 @@ Compute Test Metrics
 
  - Test Accuracy
  - Loss by Epoch (Test)
- - 
-
-
-  - For a given experiment and variable, compute the test metrics
-  - Save to an output file...
+ - Relevance Composites
+ 
+  For a given experiment and variable, compute the test metrics
+  Save to an output file...
 
  Copied from test_cesm_witheld on Tue Jun 13 11:20AM
 
@@ -67,7 +66,7 @@ nn_param_dict      = pparams.nn_param_dict
 # Set machine and import corresponding paths
 
 # Set experiment directory/key used to retrieve params from [train_cesm_params.py]
-expdir              = "FNN4_128_SingleVar_PaperRun_detrended"
+expdir              = "FNN4_128_SingleVar_PaperRun"
 eparams             = train_cesm_params.train_params_all[expdir] # Load experiment parameters
 outdir_cust         = None#"e-rule_exp1/" #Set to None or a custom directory within Metrics
 
