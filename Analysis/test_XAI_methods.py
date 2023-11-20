@@ -334,7 +334,7 @@ fsz_title = 16
 fsz_ticks = 14
 
 # Make a quick landmask
-landmask = predout.copy()
+landmask = predout[0,:,:].copy()
 landmask[landmask==0.] = np.nan
 landmask[~np.isnan(landmask)] = 1
 plt.pcolormesh(landmask)
@@ -355,7 +355,6 @@ for a in range(8):
     if a >=4:
         blabel[-1] = 1
     ax     = viz.add_coast_grid(ax,bbox,blabels=blabel,fill_color='gray')
-    
     
     # Plotting
     plotrel = explanations[a] * landmask
@@ -404,6 +403,8 @@ fig,axs         = plt.subplots(2,4,figsize=(18,9),
 
 norm = True
 ia = 0
+
+normed_maps = []
 for a in range(8):
     
     ax = axs.flatten()[a]
@@ -414,12 +415,12 @@ for a in range(8):
         blabel[-1] = 1
     ax     = viz.add_coast_grid(ax,bbox,blabels=blabel,fill_color='gray')
     
-    
     # Plotting
     plotrel = explanations[a,:,:,:].mean(0) * landmask
-    plotvar = predout.mean(0).squeeze() * landmask
-    cl = ax.contour(lon,lat,plotvar,colors="k",linewidths=0.75,levels=predlvls)
+    #plotvar = predout.mean(0).squeeze() * landmask
+    #cl = ax.contour(lon,lat,plotvar,colors="k",linewidths=0.75,levels=predlvls)
     ax.clabel(cl,fontsize=fsz_ticks)
+    
     if norm is False:
         pcm     = ax.pcolormesh(lon,lat,plotrel)
         fig.colorbar(pcm,ax=ax,orientation='horizontal',fraction=0.05,pad=0.01)
@@ -430,6 +431,9 @@ for a in range(8):
         #     plotrel = np.abs(plotrel)
         pcm     = ax.pcolormesh(lon,lat,plotrel,vmin=-1,vmax=1,cmap="cmo.balance")
         label = "max=%.0e" % normfactor
+        
+        
+    normed_maps.append(plotrel)
     ax.set_title(xai_names[a],fontsize=fsz_title)
     viz.label_sp(ia,ax=ax,fig=fig,alpha=0.5,fontsize=fsz_title,labelstyle=r"%s) ",)
         
@@ -446,4 +450,10 @@ savename = "%sXAI_Methods_Test_AllSamples_%s.png" % (figpath,fnstr)
 #print(savename)
 plt.savefig(savename,dpi=150,bbox_inches='tight')
 
+#%%
 
+nm = normed_maps
+nmm = xai_names
+diff = nm[5] - nm[6]
+plt.pcolormesh(diff,vmin=-.010,vmax=.010,cmap='cmo.balance'),plt.colorbar(),plt.title(nmm[2] + ' - ' + nmm[5])
+#%%''å
