@@ -380,6 +380,35 @@ for nr,runid in tqdm(enumerate(runids)):
 
 #print("Leadtesting ran to completion in %.2fs" % (time.time()-allstart))
 
+#%% Save the Output (modeled after compute_test_metrics)
+# Moved from test_reanalysis in predict_amv on 2023.11.09
+
+# Set saving output path
+datpath_out = "%s%s/Metrics/Test_Metrics/" % (datpath,expdir,)
+print("Saving data to %s" % datpath_out)
+
+# Get Dimension Sizes
+
+# (1) Save the class predictions and accuracy data ---------------------------------------
+## y_predicted_all [run x lead x class]
+## y_actual_all    [lead x class]
+## class_acc_all   [run x lead x class]
+## total_acc_all   [run x lead]
+st_acc          = time.time()
+
+# Flip to [lead x run] to be consistent with compute_test_metrics
+predictions_all = y_predicted_all.transpose(1,0,2) # [lead x run x class]
+targets_all     = y_actual_all.transpose(1,0)      # [lead x class]
+class_acc_all   = class_acc_all.transpose(1,0,2)   # [lead x run x class]
+total_acc_all   = total_acc_all.transpose(1,0)     # [lead x run]
+
+save_vars       = [total_acc_all,class_acc_all,predictions_all,targets_all,leads,runids]
+save_vars_name  = ["total_acc","class_acc","predictions","targets","leads","runids"]
+metrics_dict    = dict(zip(save_vars_name,save_vars))
+outname         = "%sTest_Metrics_HadISST_%s_accuracy_predictions.npz" % (datpath_out,varname)
+np.savez(outname,**metrics_dict,allow_pickle=True)
+print("Saved Accuracy and Predictions to %s in %.2fs" % (outname,time.time()-st_acc))
+
 
 #%% Perform LRP
 
@@ -985,7 +1014,6 @@ for ii in range(3):
     # Final adjustment of font sizes
     ax.tick_params(labelsize=fsz_ticks)
     ax2.tick_params(labelsize=fsz_ticks)
-
 
 figname = "%sHadISST_Prediction_Count_Lead_TimeSplit_%s.png"% (figpath,expdir)
 plt.savefig(figname,dpi=150,bbox_inches="tight",transparent=False)
