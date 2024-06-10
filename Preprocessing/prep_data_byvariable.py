@@ -27,6 +27,7 @@ For the given large ensemble dataset/variable, perform the following:
     3. Concatenate to ensemble member
     4. Intermediate Save Option
     
+    Note: Renames PSL --> SLP , TS --> SST
     -------
     Part 2-- : Deseason, Detrend, Normalize, Regrid
     -------
@@ -82,7 +83,7 @@ datpath_manual = None # Manually set datpath
 outpath        = "../../CESM_data/Predictors/"
 
 # Other Toggles
-debug         = True # Set to True for debugging flat
+debug          = True # Set to True for debugging flat
 
 # -----------------------------------------------------------------------------
 #%% Import Packages + Paths based on machine

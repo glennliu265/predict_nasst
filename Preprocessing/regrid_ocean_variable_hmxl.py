@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 
-Regrid Ocean Variable
+Copied for Regrid Ocean Variable (HMXL)
 
 Regrids CESM1-LENS ocean output from tripolar to cartesian lat/lon grid.
 
@@ -39,7 +40,9 @@ reference_var = "LANDFRAC"  # Reference variable from CAM output
 
 # Indicate paths
 outpath       = "../../CESM_data/CESM1_Ocean_Regridded/"
-datpath       = None 
+datpath       = "/stormtrack/data4/glliu/01_Data/CESM1_LE/"
+
+limit_ens     = [40,41] # ensemble INDEX
 
 # ----------
 #%% Import Packages + Paths based on machine
@@ -78,7 +81,13 @@ if mconfig == "RCP85":
 elif mconfig == "HTR":
     mnum    = np.concatenate([np.arange(1,36),np.arange(101,108)])
     ntime = 1032
-nens = len(mnum)
+    
+if limit_ens is not None:
+    nens = len(limit_ens)
+    loop_ens = limit_ens
+else:
+    nens = len(mnum)
+    loop_ens = np.arange(nens)
     
 # ---------
 #%% Set some functions
@@ -118,19 +127,21 @@ for v in range(nvars):
     
     # Adjust data path on stormtrack machine (hack fix...)
     if machine == "stormtrack": 
-        if varname == "SSS":
-            datpath   = "/vortex/jetstream/climate/data1/yokwon/CESM1_LE/processed/ocn/proc/tseries/monthly/"
-        else:
-            datpath   = "/vortex/jetstream/climate/data1/yokwon/CESM1_LE/downloaded/ocn/proc/tseries/monthly/" 
-    
+        if datpath is None:
+            if varname == "SSS":
+                datpath   = "/vortex/jetstream/climate/data1/yokwon/CESM1_LE/processed/ocn/proc/tseries/monthly/"
+            else:
+                datpath   = "/vortex/jetstream/climate/data1/yokwon/CESM1_LE/downloaded/ocn/proc/tseries/monthly/" 
+        
     # Set preprocessing function (don't need this since I load to dataarray)
     #preprocess_var = lambda x : preprocess(x,keepvars=["TLONG","TLAT","time",varname])
     
     # Loop for ensemble members
-    for e in tqdm(range(nens)):
+    for e in tqdm(limit_ens):
         
         # Load the dataarray
         N = mnum[e]
+        #print(N)
         ds = loaders.load_htr(varname,N,datpath=datpath,atm=False)
         ds = preprocess(ds.load())
         
