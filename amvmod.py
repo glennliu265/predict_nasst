@@ -1311,7 +1311,7 @@ def train_ResNet(model,loss_fn,optimizer,dataloaders,
     else:
         i_thres = early_stop
     i_incr    = 0 # Number of epochs for which the validation loss increases
-    bestloss  = np.infty
+    bestloss  = np.inf
     
     # Preallocation (in the future can allocate this to [3 x max_epoch] array)
     losses = {'train': np.full((max_epochs),np.nan), 'test' : np.full((max_epochs),np.nan),'val' : np.full((max_epochs),np.nan)}
